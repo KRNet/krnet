@@ -1,9 +1,5 @@
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\bin\Debug\KR_network.exe.config
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\bin\Debug\KR_network.exe
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\bin\Debug\KR_network.pdb
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\obj\Debug\KR_network.csprojResolveAssemblyReference.cache
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\obj\Debug\KR_network.exe
-c:\users\сергей\documents\visual studio 2013\Projects\KR_network\KR_network\obj\Debug\KR_network.pdb
-C:\Users\Сергей\Cloud@Mail.Ru\6 семестр\СТАСОИУ\KR_network\KR_network\bin\Debug\KR_network.exe.config
-C:\Users\Сергей\Cloud@Mail.Ru\6 семестр\СТАСОИУ\KR_network\KR_network\obj\Debug\KR_network.exe
-C:\Users\Сергей\Cloud@Mail.Ru\6 семестр\СТАСОИУ\KR_network\KR_network\obj\Debug\KR_network.pdb
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.exe.config
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.exe
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.pdb
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.exe
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.pdb
