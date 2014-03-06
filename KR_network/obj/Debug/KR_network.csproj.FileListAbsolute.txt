@@ -1,0 +1,12 @@
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.exe.config
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.exe
+D:\Разное\KR_NetworkCSharp\KR_network\bin\Debug\KR_network.pdb
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.exe
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.pdb
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.MainMenu.resources
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.Recieved.resources
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.csproj.GenerateResource.Cache
+D:\Разное\KR_NetworkCSharp\KR_network\obj\Debug\KR_network.csprojResolveAssemblyReference.cache
+C:\Users\Сергей\Documents\Visual Studio 2013\Projects\KR_network\KR_network\bin\Debug\KR_network.exe.config
+C:\Users\Сергей\Documents\Visual Studio 2013\Projects\KR_network\KR_network\obj\Debug\KR_network.exe
+C:\Users\Сергей\Documents\Visual Studio 2013\Projects\KR_network\KR_network\obj\Debug\KR_network.pdb
