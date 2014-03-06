@@ -4,13 +4,22 @@ using System.Linq;
 using System.Text;
 //using System.Threading.Tasks;
 using System.IO.Ports;
+using System.Windows.Forms;
 
 namespace KR_network
 {
     class Program
     {
-        static void Main(string[] args)
+        [STAThread]
+        static void Main()
         {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainMenu());
+        }
+        
+        //static void Main(string[] args)
+        //{
             /*
             String[] portList = SerialPort.GetPortNames();
             SerialPort port = new SerialPort( "COM1" , 9600, Parity.None, 8, StopBits.One);
@@ -64,27 +73,27 @@ namespace KR_network
             //p1.Close();*/
 
 
-            PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 10, 8, 1);
-            while (!pl.testConnection()){}
-            Console.WriteLine("Connection OK");
-            while (!pl.receiverReady()) { }
-            Console.WriteLine("Receiver OK");
-            byte[] forSend = new byte[50000];
-            int i;
+          //  PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 10, 8, 1);
+           // while (!pl.testConnection()){}
+           // Console.WriteLine("Connection OK");
+            //while (!pl.receiverReady()) { }
+            //Console.WriteLine("Receiver OK");
+            //byte[] forSend = new byte[50000];
+            //int i;
             //byte[] forSend = new byte[5000];
-            for (i = 0; i < forSend.Length; i++ )
-            {
-                forSend[i] = 5;
+            //for (i = 0; i < forSend.Length; i++ )
+            //{
+             //   forSend[i] = 5;
                 //Console.WriteLine("Sended: " + i.ToString() +" " + pl.sendFrame(forSend).ToString());
-            }
+           // }
             //byte a = 10;
             //pl.sendByte(a);
             //pl.sendByte(a);
             //Console.WriteLine(pl.receiverReady());
-                Console.WriteLine("Sended: " + pl.sendFrame(forSend).ToString());
+             //   Console.WriteLine("Sended: " + pl.sendFrame(forSend).ToString());
                 //Console.WriteLine("Sended: " + pl.sendFrame(forSend).ToString());
                 //Console.WriteLine("Sended: " + pl.sendFrame(forSend).ToString());
-            Console.ReadKey();
-        }
+            //Console.ReadKey();
+        //}
     }
 }
