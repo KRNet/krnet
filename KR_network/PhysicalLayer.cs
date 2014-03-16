@@ -24,7 +24,7 @@ namespace KR_network
         public SerialPort port;
         public int received = 0;
         private BlockingCollection<byte> dataForDLL;
-        private ArrayList DLLBuffer;
+        private List<byte> tempBuffer;
         private Thread sendDataToDLL;
         //private Thread reading;
 
@@ -40,9 +40,9 @@ namespace KR_network
                 port.WriteTimeout = 500;
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
                 dataForDLL = new BlockingCollection<byte>(port.ReadBufferSize);
-                DLLBuffer = new ArrayList();
+                tempBuffer = new List<byte>();
                 sendDataToDLL = new Thread(sendToDLL);
-                sendDataToDLL.Join();
+                sendDataToDLL.Start();
                 //reading = new Thread(readThread);
                 //reading.Start();
             }
@@ -185,10 +185,7 @@ namespace KR_network
             lock (dataForDLL)
             {
                 byte[] buf = new byte[dataForDLL.Count];
-                foreach (byte b in dataForDLL)
-                {
-                    dataForDLL.CopyTo(buf, 0);
-                }
+                dataForDLL.CopyTo(buf, 0);
                 dataForDLL = new BlockingCollection<byte>();
                 return buf;
             }
@@ -197,7 +194,12 @@ namespace KR_network
         //Дополняем буфер канального уровня
         private void sendToDLLBuffer(byte[] array)
         {
-            DLLBuffer.Add(array);
+            lock (tempBuffer)
+            {
+                foreach (byte b in array)
+                    tempBuffer.Add(b);
+            }
+
         }
 
         //Откладываем в буфер на прочтение
@@ -205,13 +207,17 @@ namespace KR_network
         {
             while (connectionActive)
             {
-                if (dataForDLL.Count == 0)
+                lock (dataForDLL)
                 {
-                    lock (dataForDLL)
+                    if (dataForDLL.Count == 0)
                     {
-                        foreach (byte b in DLLBuffer)
-                            dataForDLL.Add(b);
-                        DLLBuffer = new ArrayList();
+                        lock (tempBuffer)
+                        {
+                            foreach (byte b in tempBuffer)
+                                dataForDLL.Add(b);
+                            tempBuffer = new List<byte>();
+                        }
+
                     }
                 }
                 Thread.Sleep(100);
