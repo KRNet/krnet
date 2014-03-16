@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 //using System.Threading.Tasks;
@@ -17,10 +19,13 @@ namespace KR_network
      */
     class PhysicalLayer
     {
-        public enum _Parity {Even, Mark, None, Odd, Space};
+        public enum _Parity { Even, Mark, None, Odd, Space };
         private Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
+        private BlockingCollection<byte> dataForDLL;
+        private ArrayList DLLBuffer;
+        private Thread sendDataToDLL;
         //private Thread reading;
 
         //Полный конструктор
@@ -28,12 +33,16 @@ namespace KR_network
         {
             try
             {
-                port = new SerialPort(portName, baudRate, parityConvert(parity), 
+                port = new SerialPort(portName, baudRate, parityConvert(parity),
                     dataBits, stopBitsConvert(stopBits));
                 makeActive();
                 port.ReadTimeout = 500;
                 port.WriteTimeout = 500;
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
+                dataForDLL = new BlockingCollection<byte>(port.ReadBufferSize);
+                DLLBuffer = new ArrayList();
+                sendDataToDLL = new Thread(sendToDLL);
+                sendDataToDLL.Join();
                 //reading = new Thread(readThread);
                 //reading.Start();
             }
@@ -54,7 +63,7 @@ namespace KR_network
         {
             String[] ports = SerialPort.GetPortNames();
             return ports.ToList();
-        } 
+        }
 
         //Запускает порт
         private Boolean makeActive()
@@ -83,7 +92,7 @@ namespace KR_network
                 connectionActive = false;
             }
             catch (InvalidOperationException) { }
-            
+
         }
 
         //Преобразует четность
@@ -108,20 +117,22 @@ namespace KR_network
         }
 
         //Проверяет наличие запроса DTR второго компьютера
-        public Boolean testConnection()
+        private Boolean testConnection()
         {
-            try{
+            try
+            {
                 if (port.DsrHolding)
                     return true;
                 return false;
             }
-            catch(InvalidOperationException){
+            catch (InvalidOperationException)
+            {
                 return false;
             }
         }
 
         //Проверяет готовность второго компьютера к приему
-        public Boolean receiverReady()
+        private Boolean receiverReady()
         {
             try
             {
@@ -134,7 +145,7 @@ namespace KR_network
         }
 
         //Пересылает 1 байт данных
-        public Boolean sendByte(byte _byte)
+        private Boolean sendByte(byte _byte)
         {
             if (receiverReady())
             {
@@ -144,15 +155,15 @@ namespace KR_network
                 {
                     port.Write(buf, 0, 1);
                 }
-                catch(InvalidOperationException)
+                catch (InvalidOperationException)
                 {
                     return false;
                 }
-                
+
                 return true;
             }
             return false;
-            
+
         }
 
         //Пересылает кадр. Возвращает количество переданных байт кадра
@@ -168,26 +179,63 @@ namespace KR_network
             return sended;
         }
 
+        //Возвращает буфер, накопившийся для канального уровня
+        public byte[] getAllFromDllBuffer()
+        {
+            lock (dataForDLL)
+            {
+                byte[] buf = new byte[dataForDLL.Count];
+                foreach (byte b in dataForDLL)
+                {
+                    dataForDLL.CopyTo(buf, 0);
+                }
+                dataForDLL = new BlockingCollection<byte>();
+                return buf;
+            }
+        }
+
+        //Дополняем буфер канального уровня
+        private void sendToDLLBuffer(byte[] array)
+        {
+            DLLBuffer.Add(array);
+        }
+
+        //Откладываем в буфер на прочтение
+        private void sendToDLL()
+        {
+            while (connectionActive)
+            {
+                if (dataForDLL.Count == 0)
+                {
+                    lock (dataForDLL)
+                    {
+                        foreach (byte b in DLLBuffer)
+                            dataForDLL.Add(b);
+                        DLLBuffer = new ArrayList();
+                    }
+                }
+                Thread.Sleep(100);
+            }
+        }
+
         //Прием данных версия 2
-        public void DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
-                if (port.BytesToRead > port.ReadBufferSize)
+                if (port.BytesToRead >= port.ReadBufferSize)
                     port.RtsEnable = false;
                 byte[] buffer = new byte[port.BytesToRead];
                 port.Read(buffer, 0, buffer.Length);
                 if (port.BytesToRead < port.ReadBufferSize)
                     port.RtsEnable = true;
-                for (int i = 0; i < buffer.Length; i++)
-                {
-                    Console.WriteLine(buffer[i]);
-                }
+                sendToDLLBuffer(buffer);
             }
             catch (TimeoutException) { return; }
         }
 
-//Ненужный код (не надо удалять)-------------------------------------------------------------------------------
+
+        //Ненужный код (не надо удалять)-------------------------------------------------------------------------------
 
         //Пересылает кадр. Возвращает количество переданных байт кадра
         public int sendFrameV2(byte[] frame)
