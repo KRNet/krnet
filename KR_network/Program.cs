@@ -10,28 +10,31 @@ namespace KR_network
 {
     class Program
     {
-        static byte[] frame = new byte[1000];
-        
-        static PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 10, 8, 1);
+ //       static byte[] frame = new byte[1000];
+
+//        static PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 10, 8, 1);
+
         static void Main()
         {
-            //Application.EnableVisualStyles();
-            //Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new MainMenu());
-            frame.Initialize();
-            Thread t = new Thread(write);
-            t.Start();
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainMenu());
+            //frame.Initialize();
+            //Thread t = new Thread(write);
+            //t.Start();
             
         }
-        static public void write()
+        
+        /*static public void write()
         {
+            
             while (true){
                if ( pl.sendFrame(frame) == 1000)
                 Console.WriteLine("Sended");
                 Thread.Sleep(500);
             }
                 
-        }
+        }*/
         //static void Main(string[] args)
         //{
             /*

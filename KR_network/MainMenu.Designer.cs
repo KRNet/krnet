@@ -30,21 +30,19 @@
         {
             this.tabs = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.nickname = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.connectBtn = new System.Windows.Forms.Button();
-            this.exitBtn = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.parity = new System.Windows.Forms.ComboBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.dataBits = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.stopBytes = new System.Windows.Forms.ComboBox();
             this.label2 = new System.Windows.Forms.Label();
             this.speed = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.portName = new System.Windows.Forms.ComboBox();
-            this.label6 = new System.Windows.Forms.Label();
-            this.nickname = new System.Windows.Forms.TextBox();
+            this.connectBtn = new System.Windows.Forms.Button();
+            this.exitBtn = new System.Windows.Forms.Button();
             this.tabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -72,12 +70,26 @@
             this.tabPage1.Text = "Ник";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // nickname
+            // 
+            this.nickname.Location = new System.Drawing.Point(77, 78);
+            this.nickname.Name = "nickname";
+            this.nickname.Size = new System.Drawing.Size(198, 22);
+            this.nickname.TabIndex = 1;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(23, 78);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(33, 17);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Ник";
+            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.label5);
             this.tabPage2.Controls.Add(this.parity);
-            this.tabPage2.Controls.Add(this.label4);
-            this.tabPage2.Controls.Add(this.dataBits);
             this.tabPage2.Controls.Add(this.label3);
             this.tabPage2.Controls.Add(this.stopBytes);
             this.tabPage2.Controls.Add(this.label2);
@@ -92,28 +104,10 @@
             this.tabPage2.Text = "Настройки порта";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // connectBtn
-            // 
-            this.connectBtn.Location = new System.Drawing.Point(152, 371);
-            this.connectBtn.Name = "connectBtn";
-            this.connectBtn.Size = new System.Drawing.Size(174, 70);
-            this.connectBtn.TabIndex = 1;
-            this.connectBtn.Text = "Подключиться";
-            this.connectBtn.UseVisualStyleBackColor = true;
-            // 
-            // exitBtn
-            // 
-            this.exitBtn.Location = new System.Drawing.Point(17, 371);
-            this.exitBtn.Name = "exitBtn";
-            this.exitBtn.Size = new System.Drawing.Size(129, 70);
-            this.exitBtn.TabIndex = 2;
-            this.exitBtn.Text = "Выйти";
-            this.exitBtn.UseVisualStyleBackColor = true;
-            // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(34, 179);
+            this.label5.Location = new System.Drawing.Point(34, 144);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(70, 17);
             this.label5.TabIndex = 19;
@@ -122,27 +116,11 @@
             // parity
             // 
             this.parity.FormattingEnabled = true;
-            this.parity.Location = new System.Drawing.Point(135, 176);
+            this.parity.Location = new System.Drawing.Point(135, 141);
             this.parity.Name = "parity";
             this.parity.Size = new System.Drawing.Size(159, 24);
             this.parity.TabIndex = 18;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(10, 139);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(94, 17);
-            this.label4.TabIndex = 17;
-            this.label4.Text = "Биты данных";
-            // 
-            // dataBits
-            // 
-            this.dataBits.FormattingEnabled = true;
-            this.dataBits.Location = new System.Drawing.Point(135, 136);
-            this.dataBits.Name = "dataBits";
-            this.dataBits.Size = new System.Drawing.Size(159, 24);
-            this.dataBits.TabIndex = 16;
+            this.parity.SelectedIndexChanged += new System.EventHandler(this.parity_SelectedIndexChanged);
             // 
             // label3
             // 
@@ -160,6 +138,7 @@
             this.stopBytes.Name = "stopBytes";
             this.stopBytes.Size = new System.Drawing.Size(159, 24);
             this.stopBytes.TabIndex = 14;
+            this.stopBytes.SelectedIndexChanged += new System.EventHandler(this.stopBytes_SelectedIndexChanged);
             // 
             // label2
             // 
@@ -177,6 +156,7 @@
             this.speed.Name = "speed";
             this.speed.Size = new System.Drawing.Size(159, 24);
             this.speed.TabIndex = 12;
+            this.speed.SelectedIndexChanged += new System.EventHandler(this.speed_SelectedIndexChanged);
             // 
             // label1
             // 
@@ -194,22 +174,27 @@
             this.portName.Name = "portName";
             this.portName.Size = new System.Drawing.Size(159, 24);
             this.portName.TabIndex = 10;
+            this.portName.SelectedIndexChanged += new System.EventHandler(this.portName_SelectedIndexChanged);
             // 
-            // label6
+            // connectBtn
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(23, 78);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(33, 17);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "Ник";
+            this.connectBtn.Location = new System.Drawing.Point(152, 371);
+            this.connectBtn.Name = "connectBtn";
+            this.connectBtn.Size = new System.Drawing.Size(174, 70);
+            this.connectBtn.TabIndex = 1;
+            this.connectBtn.Text = "Подключиться";
+            this.connectBtn.UseVisualStyleBackColor = true;
+            this.connectBtn.Click += new System.EventHandler(this.connectBtn_Click);
             // 
-            // nickname
+            // exitBtn
             // 
-            this.nickname.Location = new System.Drawing.Point(77, 78);
-            this.nickname.Name = "nickname";
-            this.nickname.Size = new System.Drawing.Size(198, 22);
-            this.nickname.TabIndex = 1;
+            this.exitBtn.Location = new System.Drawing.Point(17, 371);
+            this.exitBtn.Name = "exitBtn";
+            this.exitBtn.Size = new System.Drawing.Size(129, 70);
+            this.exitBtn.TabIndex = 2;
+            this.exitBtn.Text = "Выйти";
+            this.exitBtn.UseVisualStyleBackColor = true;
+            this.exitBtn.Click += new System.EventHandler(this.exitBtn_Click);
             // 
             // MainMenu
             // 
@@ -241,8 +226,6 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox parity;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ComboBox dataBits;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.ComboBox stopBytes;
         private System.Windows.Forms.Label label2;
