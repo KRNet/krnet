@@ -7,9 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace KR_network
-{
+{   
     class Frame
     {
+        private byte startByte;
+        private byte stopByte;
+        private byte type;
+        private byte lengthOfData;
+        private byte[] data;
+
         public Frame(byte[] data, byte type)
         {
 
@@ -20,9 +26,9 @@ namespace KR_network
 
         }
 
-        public void getFinal() //FIXME
+        public byte[] getFinal() //FIXED
         {
-
+          
         }
 
         public static byte[] cycle(byte b)

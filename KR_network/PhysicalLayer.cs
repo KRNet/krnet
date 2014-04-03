@@ -23,9 +23,8 @@ namespace KR_network
         private Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
-        private BlockingCollection<byte> dataForDLL;
-        private List<byte> tempBuffer;
-        private Thread sendDataToDLL;
+        private ConcurrentQueue<byte> dataForDLL;
+
         //private Thread reading;
 
         //Полный конструктор
@@ -39,10 +38,7 @@ namespace KR_network
                 port.ReadTimeout = 500;
                 port.WriteTimeout = 500;
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
-                dataForDLL = new BlockingCollection<byte>(port.ReadBufferSize);
-                tempBuffer = new List<byte>();
-                sendDataToDLL = new Thread(sendToDLL);
-                sendDataToDLL.Start();
+                dataForDLL = new ConcurrentQueue<byte>();
                 //reading = new Thread(readThread);
                 //reading.Start();
             }
@@ -186,41 +182,21 @@ namespace KR_network
             {
                 byte[] buf = new byte[dataForDLL.Count];
                 dataForDLL.CopyTo(buf, 0);
-                dataForDLL = new BlockingCollection<byte>();
+                dataForDLL = new ConcurrentQueue<byte>();
                 return buf;
             }
         }
 
-        //Дополняем буфер канального уровня
-        private void sendToDLLBuffer(byte[] array)
-        {
-            lock (tempBuffer)
-            {
-                foreach (byte b in array)
-                    tempBuffer.Add(b);
-            }
-
-        }
-
         //Откладываем в буфер на прочтение
-        private void sendToDLL()
+        private void sendToDLL(byte[] array)
         {
-            while (connectionActive)
+            if (connectionActive)
             {
                 lock (dataForDLL)
                 {
-                    if (dataForDLL.Count == 0)
-                    {
-                        lock (tempBuffer)
-                        {
-                            foreach (byte b in tempBuffer)
-                                dataForDLL.Add(b);
-                            tempBuffer = new List<byte>();
-                        }
-
-                    }
+                    foreach (byte bytik in array)
+                        dataForDLL.Enqueue(bytik);
                 }
-                Thread.Sleep(100);
             }
         }
 
@@ -235,73 +211,12 @@ namespace KR_network
                 port.Read(buffer, 0, buffer.Length);
                 if (port.BytesToRead < port.ReadBufferSize)
                     port.RtsEnable = true;
-                sendToDLLBuffer(buffer);
+                sendToDLL(buffer);
             }
             catch (TimeoutException) { return; }
         }
 
 
-        //Ненужный код (не надо удалять)-------------------------------------------------------------------------------
-
-        //Пересылает кадр. Возвращает количество переданных байт кадра
-        public int sendFrameV2(byte[] frame)
-        {
-            int sended = 0;
-            int attempts = 0;
-            for (int i = 0; i < frame.Length; i++)
-            {
-                if (sendByte(frame[i]))
-                {
-                    attempts = 0;
-                }
-                else
-                {
-                    attempts++;
-                    if (attempts > 5)
-                        return i;
-                    i--;
-                }
-            }
-            return -1;
-        }
-
-
-        //Прием данных старая функция
-        public void DataReceivedOLD(object sender, SerialDataReceivedEventArgs e)
-        {
-            try
-            {
-                //Обработка принятого байта
-                int _byte = port.ReadByte();
-                Console.WriteLine(_byte);
-            }
-            catch (TimeoutException) { return; }
-            if (port.BytesToRead != 0)
-            {
-                while (port.BytesToRead != 0)
-                {
-                    Console.WriteLine(port.ReadByte());
-                }
-            }
-        }
-
-        //Поток приема
-        public void readThread()
-        {
-            while (connectionActive)
-            {
-                try
-                {
-                    if (port.BytesToRead > 1)
-                        port.RtsEnable = false;
-                    byte receivedByte = (byte)port.ReadByte();
-                    if (port.BytesToRead == 0)
-                        port.RtsEnable = true;
-                    received++;
-                    Console.WriteLine(received);
-                }
-                catch (TimeoutException) { }
-            }
-        }
+      
     }
 }
