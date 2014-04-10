@@ -14,10 +14,11 @@ namespace KR_network
         private Thread threadFromPhysicalLayer;
         private ConcurrentQueue<String> dataFromAppLayer;
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 254;
-        private Byte startByte = 253;
+        private Byte stopByte = 2;
+        private Byte startByte = 1;
 
-        private List<byte> byteBuffer;
+
+        private LinkedList<byte> byteBuffer;
         private LinkedList<Frame> frameBuffer;
         private ConcurrentQueue<String> stringsBuffer;
 
@@ -25,21 +26,43 @@ namespace KR_network
 
         public DLL(PhysicalLayer physicalLayer)
         {
-            this.physicalLayer = physicalLayer;
-            byteBuffer = new List<byte>();
             stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
-            
+            this.physicalLayer = physicalLayer;
         }
 
-        //Служба чтения с физического уровня
-        private void readFromPhLayer()
+        public void readFromPhLayer()
         {
-            while (physicalLayer.connectionActive)
+            while (true)
             {
-                byte[] received = physicalLayer.getAllFromDllBuffer();
-                addBytes(received);
+                byte[] dataReceived = physicalLayer.getAllFromDllBuffer();
+                List<byte> bufferForFrame = new List<byte>();
+
+
+                for (int i = 0; i < dataReceived.Count(); i++)
+                {
+
+                    if (dataReceived[i] == startByte)
+                    {
+                        i++;
+                        for (; dataReceived[i] != stopByte && i < dataReceived.Count(); i++)
+                            bufferForFrame.Add(dataReceived[i]);
+                    }
+                    else
+                    {
+                        if (chunk.Count() != 0)
+                        {
+                            ///добавить в чанк
+                        }
+                        else
+                        {
+                            //создать чанк
+                        }
+                    }
+                    bufferForFrame = new List<byte>();
+                }
+
                 Thread.Sleep(200);
             }
         }
@@ -80,59 +103,23 @@ namespace KR_network
             physicalLayer.sendFrame(frame.serialize());
         }
 
-        public void addBytes(byte[] b)
+     /*   public void addBytes(byte[] b)
         {
-            Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
-            for (int i = 0; i < b.Count(); i++)
+            if (this.byteBuffer.Count != 0)
             {
-                if (this.byteBuffer.Count == 0)
+                Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
+                if (Array.IndexOf(byteArray, stopByte) != -1
+                    && Array.IndexOf(byteArray, stopByte) < Array.IndexOf(byteArray, stopByte)
+                    )
                 {
-                    if (b[i] == startByte)
-                    {
-                        this.byteBuffer.Add(b[i]);
-                    }
-                }
-                else
-                {
-                    if (b[i] == startByte)
-                    {
-                        this.byteBuffer.Clear();
-                        this.byteBuffer.Add(b[i]);
-                    }
-                    else if (b[i] == stopByte)
-                    {
-                        this.byteBuffer.Add(b[i]);
-                        Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
-                        if (newFrame.isInformationFrame())
-                        {
-                            this.stringsBuffer.Enqueue(
-                                                        getString(newFrame.getData())
-                                                    );
-                        }
-                        else
-                        {
-                            processControlFrame(newFrame);
-                        }
-                    }
-                    else
-                    {
-                        this.byteBuffer.Add(b[i]);
-                    }
                     
+                    int stopByteIndex = Array.IndexOf(byteArray, stopByte);
+
+                    System.Array.Copy(b, )
+                    b
                 }
             }
-
         }
-
-
-        public void clearByteBuffer()
-        {
-            this.byteBuffer = null;
-        }
-
-        private void processControlFrame(Frame frame)
-        {
-            Console.WriteLine("processControlFrame");
-        }
+        */
     }
 }

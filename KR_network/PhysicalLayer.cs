@@ -6,8 +6,8 @@ using System.Linq;
 using System.Text;
 //using System.Threading.Tasks;
 using System.IO.Ports;
-using System.Threading;
 using System.IO;
+using System.Threading;
 
 namespace KR_network
 {
@@ -21,7 +21,7 @@ namespace KR_network
     class PhysicalLayer
     {
         public enum _Parity { Even, Mark, None, Odd, Space };
-        public Boolean connectionActive = false;
+        private Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
         private ConcurrentQueue<byte> dataForDLL;
@@ -69,7 +69,6 @@ namespace KR_network
             {
                 port.Handshake = Handshake.None;
                 port.Open();
-                port.RtsEnable = true;
                 port.DtrEnable = true;
                 connectionActive = true;
                 return true;

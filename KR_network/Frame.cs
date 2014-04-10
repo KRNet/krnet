@@ -19,46 +19,36 @@ namespace KR_network
 
         public Frame(byte[] data, byte type)
         {
-            this.startByte = 253; //Стартовый байт = 1
-            this.stopByte = 254;
+            this.startByte = 1; //Стартовый байт = 1
+            this.stopByte = 2;
             this.type = type;   //type = 1 для информационных кадров
-            this.frameLength = 3;
-            if (type == 1)
-            {
-                //Нужно вызывать кодирование сначала
-                this.lengthOfData = (byte)data.Length;
-                this.data = data;
-                this.frameLength += lengthOfData + 1;
-            }
+            
+            //Нужно вызывать кодирование сначала
+            this.lengthOfData = (byte)data.Length;
+            this.data = data;
+            
+            this.frameLength = 4 + lengthOfData;
         }
 
         public byte[] serialize()
         {
-            List<byte> serialized = new List<byte>();
-            serialized.Add(startByte);
-            serialized.Add(type);
-            if (type == 1)
-            {
-                serialized.Add(lengthOfData);
-                foreach (var b in data) { 
-                    serialized.Add(b); 
-                }
-            }
-            serialized.Add(stopByte);
-            return serialized.ToArray();
+            byte[] serialized = new byte[frameLength];
+            serialized.ToList().Add(startByte);
+            serialized.ToList().Add(type);
+            serialized.ToList().Add(lengthOfData);           
+            foreach(var b in data){serialized.ToList().Add(b);}
+            serialized.ToList().Add(stopByte);
+            return serialized;
         }
 
         static public Frame deserialize(byte[] array)
         {
+            byte length = array.ElementAt(2);
+            byte [] dataFromArray = new byte[length];
+            for (byte i = 3; i < 3 + length; i++)
+                dataFromArray.ToList().Add(array[i]);
             byte type = array.ElementAt(1);
-            List<byte> dataFromArray = new List<byte>();
-            if (type == 1)  //Если кадр информационный
-            {
-                byte length = array.ElementAt(2);
-                for (byte i = 3; i < 3 + length; i++)
-                    dataFromArray.Add(array[i]);
-            }
-            return new Frame(dataFromArray.ToArray(), type);
+            return new Frame(dataFromArray, type);
 
         }
 
@@ -145,20 +135,6 @@ namespace KR_network
 
         public void decode(byte[] b)
         {
-
-        }
-
-        public byte[] getData() 
-        {
-            return this.data;
-        }
-
-        public bool isInformationFrame()
-        {
-            if (this.type == 1)
-                return true;
-            else
-                return false;
 
         }
 

@@ -35,16 +35,6 @@ namespace KR_network
                 stopBytes.Items.Add(stopEl);
         }
 
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void exitBtn_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -64,8 +54,6 @@ namespace KR_network
                 Dialog dialog = new Dialog();
                 Data.makeAppLayer();
                 dialog.Show();
-                //while (!Data.physicalLayer.receiverReady());
-                //dialog.Show();
             }
         }
 
