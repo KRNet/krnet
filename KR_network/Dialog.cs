@@ -10,11 +10,22 @@ using System.Windows.Forms;
 
 namespace KR_network
 {
-    public partial class Recieved : Form
+    public partial class Dialog : Form
     {
-        public Recieved()
+        public Dialog()
         {
             InitializeComponent();
+        }
+
+        private void connectBtn_Click(object sender, EventArgs e)
+        {
+
+
+        }
+
+        private void exitBtn_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

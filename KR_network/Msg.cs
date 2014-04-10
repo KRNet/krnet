@@ -18,6 +18,11 @@ namespace KR_network
             this.message = message;
         }
 
+        public string getMessage()
+        {
+            return this.message;
+        }
+
         public string toString()
         {
             return this.message + "\r\n" + this.type;

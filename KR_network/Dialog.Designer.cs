@@ -1,6 +1,6 @@
 ﻿namespace KR_network
 {
-    partial class Sended
+    partial class Dialog
     {
         /// <summary>
         /// Required designer variable.
@@ -73,7 +73,7 @@
             this.messages.Size = new System.Drawing.Size(308, 180);
             this.messages.TabIndex = 5;
             // 
-            // Sended
+            // Dialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -82,8 +82,8 @@
             this.Controls.Add(this.exitBtn);
             this.Controls.Add(this.connectBtn);
             this.Controls.Add(this.richTextBox1);
-            this.Name = "Sended";
-            this.Text = "Sended";
+            this.Name = "Dialog";
+            this.Text = "Диалог";
             this.ResumeLayout(false);
 
         }
