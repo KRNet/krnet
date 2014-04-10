@@ -101,9 +101,16 @@ namespace KR_network
                     {
                         this.byteBuffer.Add(b[i]);
                         Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
-                        this.stringsBuffer.Enqueue(
-                                                    getString(newFrame.getData())
-                                                );
+                        if (newFrame.isInformationFrame())
+                        {
+                            this.stringsBuffer.Enqueue(
+                                                        getString(newFrame.getData())
+                                                    );
+                        }
+                        else
+                        {
+                            processControlFrame(newFrame);
+                        }
                     }
                     else
                     {
@@ -119,6 +126,11 @@ namespace KR_network
         public void clearByteBuffer()
         {
             this.byteBuffer = null;
+        }
+
+        private void processControlFrame(Frame frame)
+        {
+            Console.WriteLine("processControlFrame");
         }
     }
 }

@@ -152,5 +152,14 @@ namespace KR_network
             return this.data;
         }
 
+        public bool isInformationFrame()
+        {
+            if (this.type == 1)
+                return true;
+            else
+                return false;
+
+        }
+
     }
 }
