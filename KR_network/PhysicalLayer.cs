@@ -76,7 +76,7 @@ namespace KR_network
         }
 
         //Закрывает порт
-        private void closeConnection()
+        public void closeConnection()
         {
             try
             {
@@ -175,7 +175,7 @@ namespace KR_network
             return sended;
         }
 
-        //Возвращает буфер, накопившийся для канального уровня
+        //Метод для канального уровня
         public byte[] getAllFromDllBuffer()
         {
             lock (dataForDLL)
