@@ -17,12 +17,16 @@ namespace KR_network
         private Byte stopByte = 2;
         private Byte startByte = 1;
 
-        private List<byte> chunk = new List<byte>();
 
-        private ConcurrentQueue<String> stringsBuffer = new ConcurrentQueue<string>();
+        private LinkedList<byte> byteBuffer;
+        private LinkedList<Frame> frameBuffer;
+        private ConcurrentQueue<String> stringsBuffer;
+
+        private List<byte> chunk = new List<byte>(); 
 
         public DLL(PhysicalLayer physicalLayer)
         {
+            stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
             this.physicalLayer = physicalLayer;
@@ -66,6 +70,8 @@ namespace KR_network
         public String readFromDLLBuffer()
         {
             String msg;
+            if (stringsBuffer.IsEmpty)
+                return "";
             stringsBuffer.TryDequeue(out msg);
             return msg;
         }
@@ -94,6 +100,24 @@ namespace KR_network
         {
             Frame frame = makeFrame(data);
             physicalLayer.sendFrame(frame.serialize());
+        }
+
+        public void addBytes(byte[] b)
+        {
+            if (this.byteBuffer.Count != 0)
+            {
+                Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
+                if (Array.IndexOf(byteArray, stopByte) != -1
+                    && Array.IndexOf(byteArray, stopByte) < Array.IndexOf(byteArray, stopByte)
+                    )
+                {
+                    
+                    int stopByteIndex = Array.IndexOf(byteArray, stopByte);
+
+                    System.Array.Copy(b, )
+                    b
+                }
+            }
         }
 
     }

@@ -76,7 +76,7 @@ namespace KR_network
         }
 
         //Закрывает порт
-        private void closeConnection()
+        public void closeConnection()
         {
             try
             {
@@ -113,7 +113,7 @@ namespace KR_network
         }
 
         //Проверяет наличие запроса DTR второго компьютера
-        private Boolean testConnection()
+        public Boolean testConnection()
         {
             try
             {
@@ -128,7 +128,7 @@ namespace KR_network
         }
 
         //Проверяет готовность второго компьютера к приему
-        private Boolean receiverReady()
+        public Boolean receiverReady()
         {
             try
             {
