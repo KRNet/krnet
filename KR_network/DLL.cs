@@ -17,6 +17,10 @@ namespace KR_network
         private Byte stopByte = 2;
         private Byte startByte = 1;
 
+        private LinkedList<byte> byteBuffer;
+        private LinkedList<Frame> frameBuffer;
+        private ConcurrentQueue<String> stringsBuffer;
+
         private List<byte> chunk = new List<byte>(); 
 
         public DLL(PhysicalLayer physicalLayer)
@@ -106,6 +110,24 @@ namespace KR_network
         public Frame makeFrame(String data)
         {
             return new Frame(getBytes(data)); // сделать конструктор
+        }
+
+        public void addBytes(byte[] b)
+        {
+            if (this.byteBuffer.Count != 0)
+            {
+                Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
+                if (Array.IndexOf(byteArray, stopByte) != -1
+                    && Array.IndexOf(byteArray, stopByte) < Array.IndexOf(byteArray, stopByte)
+                    )
+                {
+                    
+                    int stopByteIndex = Array.IndexOf(byteArray, stopByte);
+
+                    System.Array.Copy(b, )
+                    b
+                }
+            }
         }
 
     }
