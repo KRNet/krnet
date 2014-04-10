@@ -20,7 +20,6 @@ namespace KR_network
         public MainMenu()
         {
             InitializeComponent();
-            
             foreach (var port in PhysicalLayer.searchPorts())
                 portName.Items.Add(port);
             
@@ -60,10 +59,13 @@ namespace KR_network
             }
             else
             {
-                PhysicalLayer physicalLayer = new PhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
+                Data.makePhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
                 this.Hide();
-                Recieved recievedFrom = new Recieved();
-                Sended sended = new Sended();
+                Dialog dialog = new Dialog();
+                Data.makeAppLayer();
+                dialog.Show();
+                //while (!Data.physicalLayer.receiverReady());
+                //dialog.Show();
             }
         }
 

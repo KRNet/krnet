@@ -22,7 +22,7 @@ namespace KR_network
         private LinkedList<Frame> frameBuffer;
         private ConcurrentQueue<String> stringsBuffer;
 
-        private List<byte> chunk = new List<byte>(); 
+        private List<byte> chunk = new List<byte>();
 
         public DLL(PhysicalLayer physicalLayer)
         {
@@ -96,6 +96,6 @@ namespace KR_network
                 }
             }
         }
-
+        
     }
 }
