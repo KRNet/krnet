@@ -20,7 +20,7 @@ namespace KR_network
     class PhysicalLayer
     {
         public enum _Parity { Even, Mark, None, Odd, Space };
-        private Boolean connectionActive = false;
+        public Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
         private ConcurrentQueue<byte> dataForDLL;

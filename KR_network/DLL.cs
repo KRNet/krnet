@@ -32,36 +32,13 @@ namespace KR_network
             this.physicalLayer = physicalLayer;
         }
 
-        public void readFromPhLayer()
+        //Служба чтения с физического уровня
+        private void readFromPhLayer()
         {
-            while (true)
+            while (physicalLayer.connectionActive)
             {
-                byte[] dataReceived = physicalLayer.getAllFromDllBuffer();
-                List<byte> bufferForFrame = new List<byte>();
-
-                
-                for (int i = 0; i < dataReceived.Count(); i++)
-                {
-                    
-                    if (dataReceived[i] == startByte)
-                    {
-                        i++;
-                        for (; dataReceived[i] != stopByte && i < dataReceived.Count(); i++)
-                            bufferForFrame.Add(dataReceived[i]);
-                    }
-                    else {
-                        if (chunk.Count() != 0)
-                        {
-                            ///добавить в чанк
-                        }
-                        else
-                        {
-                            //создать чанк
-                        }
-                    }
-                    bufferForFrame = new List<byte>();
-                }
-
+                byte[] received = physicalLayer.getAllFromDllBuffer();
+                addBytes(received);
                 Thread.Sleep(200);
             }
         }
