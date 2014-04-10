@@ -107,5 +107,10 @@ namespace KR_network
 
         }
 
+        public byte[] getData() 
+        {
+            return this.data;
+        }
+
     }
 }

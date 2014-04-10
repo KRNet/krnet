@@ -17,7 +17,7 @@ namespace KR_network
         private Byte stopByte = 2;
         private Byte startByte = 1;
 
-        private LinkedList<byte> byteBuffer;
+        private List<byte> byteBuffer;
         private LinkedList<Frame> frameBuffer;
         private ConcurrentQueue<String> stringsBuffer;
 
@@ -114,21 +114,44 @@ namespace KR_network
 
         public void addBytes(byte[] b)
         {
-            if (this.byteBuffer.Count != 0)
+            Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
+            for (int i = 0; i < b.Count(); i++)
             {
-                Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
-                if (Array.IndexOf(byteArray, stopByte) != -1
-                    && Array.IndexOf(byteArray, stopByte) < Array.IndexOf(byteArray, stopByte)
-                    )
+                if (this.byteBuffer.Count == 0)
                 {
+                    if (b[i] == startByte)
+                    {
+                        this.byteBuffer.Add(b[i]);
+                    }
+                }
+                else
+                {
+                    if (b[i] == startByte)
+                    {
+                        this.byteBuffer.Clear();
+                        this.byteBuffer.Add(b[i]);
+                    }
+                    else if (b[i] == stopByte)
+                    {
+                        this.byteBuffer.Add(b[i]);
+                        Frame newFrame = deserialize(this.byteBuffer.ToArray());
+                        this.stringsBuffer.Enqueue(
+                                                    getString(newFrame.getData())
+                                                );
+                    }
+                    else
+                    {
+                        this.byteBuffer.Add(b[i]);
+                    }
                     
-                    int stopByteIndex = Array.IndexOf(byteArray, stopByte);
-
-                    System.Array.Copy(b, )
-                    b
                 }
             }
+
         }
 
+        public void clearByteBuffer()
+        {
+            this.byteBuffer = null;
+        }
     }
 }
