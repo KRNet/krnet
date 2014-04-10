@@ -30,7 +30,7 @@
         {
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.exitBtn = new System.Windows.Forms.Button();
-            this.connectBtn = new System.Windows.Forms.Button();
+            this.sendBtn = new System.Windows.Forms.Button();
             this.messages = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
@@ -53,15 +53,15 @@
             this.exitBtn.UseVisualStyleBackColor = true;
             this.exitBtn.Click += new System.EventHandler(this.exitBtn_Click);
             // 
-            // connectBtn
+            // sendBtn
             // 
-            this.connectBtn.Location = new System.Drawing.Point(147, 282);
-            this.connectBtn.Name = "connectBtn";
-            this.connectBtn.Size = new System.Drawing.Size(174, 70);
-            this.connectBtn.TabIndex = 3;
-            this.connectBtn.Text = "Отправить";
-            this.connectBtn.UseVisualStyleBackColor = true;
-            this.connectBtn.Click += new System.EventHandler(this.connectBtn_Click);
+            this.sendBtn.Location = new System.Drawing.Point(147, 282);
+            this.sendBtn.Name = "sendBtn";
+            this.sendBtn.Size = new System.Drawing.Size(174, 70);
+            this.sendBtn.TabIndex = 3;
+            this.sendBtn.Text = "Отправить";
+            this.sendBtn.UseVisualStyleBackColor = true;
+            this.sendBtn.Click += new System.EventHandler(this.sendBtn_Click);
             // 
             // messages
             // 
@@ -80,7 +80,7 @@
             this.ClientSize = new System.Drawing.Size(331, 357);
             this.Controls.Add(this.messages);
             this.Controls.Add(this.exitBtn);
-            this.Controls.Add(this.connectBtn);
+            this.Controls.Add(this.sendBtn);
             this.Controls.Add(this.richTextBox1);
             this.Name = "Dialog";
             this.Text = "Диалог";
@@ -92,7 +92,7 @@
 
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Button exitBtn;
-        private System.Windows.Forms.Button connectBtn;
+        private System.Windows.Forms.Button sendBtn;
         private System.Windows.Forms.ListBox messages;
     }
 }

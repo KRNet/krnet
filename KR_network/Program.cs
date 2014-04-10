@@ -19,9 +19,6 @@ namespace KR_network
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainMenu());
-            Msg msg = new Msg("qqqq", Msg.Types.manage);
-            Console.WriteLine(msg.toString());
-            msg = Msg.toMsg(msg.toString());
             //frame.Initialize();
             //Thread t = new Thread(write);
             //t.Start();

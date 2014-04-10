@@ -7,6 +7,7 @@ using System.Text;
 //using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Threading;
+using System.IO;
 
 namespace KR_network
 {
@@ -73,6 +74,7 @@ namespace KR_network
                 return true;
             }
             catch (InvalidOperationException) { return false; }
+            catch (IOException) { return false; }
         }
 
         //Закрывает порт

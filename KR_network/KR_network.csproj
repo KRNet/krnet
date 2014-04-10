@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppLayer.cs" />
+    <Compile Include="Data.cs" />
     <Compile Include="DLL.cs" />
     <Compile Include="Frame.cs" />
     <Compile Include="MainMenu.cs">

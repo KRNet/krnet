@@ -13,20 +13,18 @@ namespace KR_network
         private ConcurrentQueue<Msg> messageQueue;
         private DLL dll;
         private PhysicalLayer physicalLayer;
-        private ListBox messages;
 
-        public AppLayer(PhysicalLayer physicalLayer, ListBox messages)
+        public AppLayer(PhysicalLayer physicalLayer)
         {
+            this.messageQueue = new ConcurrentQueue<Msg>();
             this.physicalLayer = physicalLayer;
-            this.dll = new DLL();
-            this.messages = messages;
+            this.dll = new DLL(physicalLayer);
         }
 
         public void SendInfoMessage(string msg)
         {
             Msg message = new Msg(msg, Msg.Types.info);
             messageQueue.Enqueue(message);
-            messages.Items.Add(message.getMessage());
         }
 
         public void ReadFromDLL()
@@ -38,7 +36,6 @@ namespace KR_network
                 if (!message.Equals(""))
                 {
                     Msg msg = Msg.toMsg(message);
-                    messages.Items.Add(msg.getMessage());
                 }
             }
         }

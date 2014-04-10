@@ -15,12 +15,21 @@ namespace KR_network
         public Dialog()
         {
             InitializeComponent();
+            messages.Items.Add("waiting for connection");
         }
 
-        private void connectBtn_Click(object sender, EventArgs e)
+        private void sendBtn_Click(object sender, EventArgs e)
         {
-
-
+            if (Data.physicalLayer.receiverReady())
+            {
+                if (!messages.Items.Contains("connection established"))
+                    messages.Items.Add("connection established");
+                if (richTextBox1.Text != "")
+                {
+                    Data.appLayer.SendInfoMessage(richTextBox1.Text);
+                    messages.Items.Add(richTextBox1.Text);
+                }
+            }
         }
 
         private void exitBtn_Click(object sender, EventArgs e)
