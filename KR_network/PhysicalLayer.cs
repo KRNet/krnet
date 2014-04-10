@@ -69,6 +69,7 @@ namespace KR_network
             {
                 port.Handshake = Handshake.None;
                 port.Open();
+                port.RtsEnable = true;
                 port.DtrEnable = true;
                 connectionActive = true;
                 return true;

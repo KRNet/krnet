@@ -14,8 +14,8 @@ namespace KR_network
         private Thread threadFromPhysicalLayer;
         private ConcurrentQueue<String> dataFromAppLayer;
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 2;
-        private Byte startByte = 1;
+        private Byte stopByte = 254;
+        private Byte startByte = 253;
 
         private List<byte> byteBuffer;
         private LinkedList<Frame> frameBuffer;
@@ -25,10 +25,12 @@ namespace KR_network
 
         public DLL(PhysicalLayer physicalLayer)
         {
+            this.physicalLayer = physicalLayer;
+            byteBuffer = new List<byte>();
             stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
-            this.physicalLayer = physicalLayer;
+            
         }
 
         //Служба чтения с физического уровня
