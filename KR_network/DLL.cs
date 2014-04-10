@@ -21,76 +21,35 @@ namespace KR_network
         private LinkedList<Frame> frameBuffer;
         private ConcurrentQueue<String> stringsBuffer;
 
-        private List<byte> chunk = new List<byte>(); 
+        private List<byte> chunk = new List<byte>();
 
         public DLL(PhysicalLayer physicalLayer)
         {
-            threadFromAppLayer = new Thread(readFromAppLayer);
-            threadFromAppLayer.Start();
+            stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
             this.physicalLayer = physicalLayer;
         }
 
-        public void readFromPhLayer()
+        //Служба чтения с физического уровня
+        private void readFromPhLayer()
         {
-            while (true)
+            while (physicalLayer.connectionActive)
             {
-                byte[] dataReceived = physicalLayer.getAllFromDllBuffer();
-                List<byte> bufferForFrame = new List<byte>();
-
-                
-                for (int i = 0; i < dataReceived.Count(); i++)
-                {
-                    
-                    if (dataReceived[i] == startByte)
-                    {
-                        i++;
-                        for (; dataReceived[i] != stopByte && i < dataReceived.Count(); i++)
-                            bufferForFrame.Add(dataReceived[i]);
-                    }
-                    else {
-                        if (chunk.Count() != 0)
-                        {
-                            ///добавить в чанк
-                        }
-                        else
-                        {
-                            //создать чанк
-                        }
-                    }
-                    bufferForFrame = new List<byte>();
-                }
-
+                byte[] received = physicalLayer.getAllFromDllBuffer();
+                addBytes(received);
                 Thread.Sleep(200);
             }
         }
 
-        public void readFromAppLayer()
+        //Метод для прикладного уровня
+        public String readFromDLLBuffer()
         {
-            while (true)
-            {
-                lock(dataFromAppLayer)
-                {
-                    string message;
-                    if (dataFromAppLayer.TryDequeue(out message))
-                    {
-                        Frame frame = makeFrame(message);
-                        physicalLayer.sendFrame(frame.getFinal());
-                    }
-
-                }
-                Thread.Sleep(200);
-            }
-        }
-
-
-        public void sendToDLL(string data)
-        {
-            lock (dataFromAppLayer)
-            {   
-                dataFromAppLayer.Add(data);
-            }
+            String msg;
+            if (stringsBuffer.IsEmpty)
+                return "";
+            stringsBuffer.TryDequeue(out msg);
+            return msg;
         }
 
         static byte[] getBytes(string str)
@@ -109,7 +68,14 @@ namespace KR_network
 
         public Frame makeFrame(String data)
         {
-            return new Frame(getBytes(data)); // сделать конструктор
+            byte type = 1; //Информационный кадр
+            return new Frame(getBytes(data), type); // сделать конструктор
+        }
+
+        public void sendMessage(String data)
+        {
+            Frame frame = makeFrame(data);
+            physicalLayer.sendFrame(frame.serialize());
         }
 
         public void addBytes(byte[] b)
@@ -134,7 +100,7 @@ namespace KR_network
                     else if (b[i] == stopByte)
                     {
                         this.byteBuffer.Add(b[i]);
-                        Frame newFrame = deserialize(this.byteBuffer.ToArray());
+                        Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
                         this.stringsBuffer.Enqueue(
                                                     getString(newFrame.getData())
                                                 );
@@ -148,6 +114,7 @@ namespace KR_network
             }
 
         }
+
 
         public void clearByteBuffer()
         {

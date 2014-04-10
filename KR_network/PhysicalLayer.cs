@@ -7,6 +7,7 @@ using System.Text;
 //using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Threading;
+using System.IO;
 
 namespace KR_network
 {
@@ -20,7 +21,7 @@ namespace KR_network
     class PhysicalLayer
     {
         public enum _Parity { Even, Mark, None, Odd, Space };
-        private Boolean connectionActive = false;
+        public Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
         private ConcurrentQueue<byte> dataForDLL;
@@ -73,10 +74,11 @@ namespace KR_network
                 return true;
             }
             catch (InvalidOperationException) { return false; }
+            catch (IOException) { return false; }
         }
 
         //Закрывает порт
-        private void closeConnection()
+        public void closeConnection()
         {
             try
             {
@@ -113,7 +115,7 @@ namespace KR_network
         }
 
         //Проверяет наличие запроса DTR второго компьютера
-        private Boolean testConnection()
+        public Boolean testConnection()
         {
             try
             {
@@ -128,7 +130,7 @@ namespace KR_network
         }
 
         //Проверяет готовность второго компьютера к приему
-        private Boolean receiverReady()
+        public Boolean receiverReady()
         {
             try
             {
@@ -175,7 +177,7 @@ namespace KR_network
             return sended;
         }
 
-        //Возвращает буфер, накопившийся для канального уровня
+        //Метод для канального уровня
         public byte[] getAllFromDllBuffer()
         {
             lock (dataForDLL)

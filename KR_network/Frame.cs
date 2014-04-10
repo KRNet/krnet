@@ -15,9 +15,49 @@ namespace KR_network
         private byte type;
         private byte lengthOfData;
         private byte[] data;
+        private int frameLength;
 
         public Frame(byte[] data, byte type)
         {
+            this.startByte = 1; //Стартовый байт = 1
+            this.stopByte = 2;
+            this.type = type;   //type = 1 для информационных кадров
+            this.frameLength = 3;
+            if (type == 1)
+            {
+                //Нужно вызывать кодирование сначала
+                this.lengthOfData = (byte)data.Length;
+                this.data = data;
+                this.frameLength += lengthOfData + 1;
+            }
+        }
+
+        public byte[] serialize()
+        {
+            byte[] serialized = new byte[frameLength];
+            serialized.ToList().Add(startByte);
+            serialized.ToList().Add(type);
+            if (type == 1)
+            {
+                serialized.ToList().Add(lengthOfData);
+                foreach (var b in data) { serialized.ToList().Add(b); }
+            }
+            serialized.ToList().Add(stopByte);
+            return serialized;
+        }
+
+        static public Frame deserialize(byte[] array)
+        {
+            byte type = array.ElementAt(1);
+            byte[] dataFromArray = new byte[0];
+            if (type == 1)  //Если кадр информационный
+            {
+                byte length = array.ElementAt(2);
+                dataFromArray = new byte[length];
+                for (byte i = 3; i < 3 + length; i++)
+                    dataFromArray.ToList().Add(array[i]);
+            }
+            return new Frame(dataFromArray, type);
 
         }
 
@@ -26,11 +66,11 @@ namespace KR_network
 
         }
 
-        public byte[] getFinal() //FIXED
+       /* public byte[] getFinal() //FIXED
         {
           
         }
-
+        */
         public static byte[] cycle(byte b)
         {
             int iVector = Convert.ToInt32(b);
