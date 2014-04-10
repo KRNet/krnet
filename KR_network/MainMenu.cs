@@ -62,7 +62,8 @@ namespace KR_network
             {
                 PhysicalLayer physicalLayer = new PhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
                 this.Hide();
-                Recieved recievedFrom = new Recieved();
+                AppLayer appLayer = new AppLayer(physicalLayer, _nickname);
+                //Recieved recievedFrom = new Recieved();
                 Sended sended = new Sended();
             }
         }

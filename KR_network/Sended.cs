@@ -16,5 +16,15 @@ namespace KR_network
         {
             InitializeComponent();
         }
+
+        private void connectBtn_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void exitBtn_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
