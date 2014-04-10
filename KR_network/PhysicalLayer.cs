@@ -175,7 +175,7 @@ namespace KR_network
             return sended;
         }
 
-        //Возвращает буфер, накопившийся для канального уровня
+        //Метод для канального уровня
         public byte[] getAllFromDllBuffer()
         {
             lock (dataForDLL)
