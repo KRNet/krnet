@@ -15,11 +15,12 @@ namespace KR_network
             //Application.EnableVisualStyles();
             //Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new MainMenu());
-            PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 1, 8, 1);
+            PhysicalLayer pl = new PhysicalLayer("COM1", 1, 1, 8, 1);
             DLL dll = new DLL(pl);
             while (!pl.receiverReady()) { }
             Console.WriteLine("sending 'abc'...");
             dll.sendMessage("abc");
+            
             Console.WriteLine("sending 'def'...");
             dll.sendMessage("def");
             Console.ReadKey();
