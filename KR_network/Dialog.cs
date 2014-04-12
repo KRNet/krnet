@@ -16,14 +16,14 @@ namespace KR_network
         {
             InitializeComponent();
             messages.Items.Add("waiting for connection");
+            Data.appLayer.setForm(this);
+            Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
         }
 
         private void sendBtn_Click(object sender, EventArgs e)
         {
             if (Data.physicalLayer.receiverReady())
             {
-                if (!messages.Items.Contains("connection established"))
-                    messages.Items.Add("connection established");
                 if (richTextBox1.Text != "")
                 {
                     Data.appLayer.SendInfoMessage(richTextBox1.Text);
