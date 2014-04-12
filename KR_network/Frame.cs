@@ -15,7 +15,6 @@ namespace KR_network
         private byte type;
         private byte lengthOfData;
         private byte[] data;
-        private byte checkSum;
         private int frameLength;
 
         public Frame(byte[] data, byte type)
@@ -46,10 +45,7 @@ namespace KR_network
 
         public bool isInformationFrame()
         {
-            if (this.type == 1)
-                return true;
-            else
-                return false;
+            return this.type == 1;
         }
 
         public byte[] serialize()

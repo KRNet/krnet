@@ -25,9 +25,7 @@ namespace KR_network
         public SerialPort port;
         public int received = 0;
         private ConcurrentQueue<byte> dataForDLL;
-
-        //private Thread reading;
-
+ 
         //Полный конструктор
         public PhysicalLayer(string portName, int baudRate, int parity, int dataBits, double stopBits)
         {
@@ -40,8 +38,7 @@ namespace KR_network
                 port.WriteTimeout = 500;
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
                 dataForDLL = new ConcurrentQueue<byte>();
-                //reading = new Thread(readThread);
-                //reading.Start();
+
             }
             catch (InvalidOperationException) { }
         }
@@ -78,6 +75,7 @@ namespace KR_network
                 port.Handshake = Handshake.None;
                 port.Open();
                 port.DtrEnable = true;
+                port.RtsEnable = true;
                 connectionActive = false;
                 return true;
             }
@@ -122,71 +120,36 @@ namespace KR_network
             return StopBits.One;
         }
 
-        //Проверяет наличие запроса DTR второго компьютера
-        public Boolean testConnection()
-        {
-            try
-            {
-                if (port.DsrHolding)
-                    return true;
-                return false;
-            }
-            catch (InvalidOperationException)
-            {
-                return false;
-            }
-        }
-
         //Проверяет готовность второго компьютера к приему
         public Boolean receiverReady()
         {
             try
             {
-                port.RtsEnable = true;
-                if (port.CtsHolding && testConnection())
+                if (port.CtsHolding && port.DsrHolding)
                 {
                     this.connectionActive = true;
                     return true;
                 }
-                    
                 return false;
             }
             catch (InvalidOperationException) { return false; }
         }
 
-        //Пересылает 1 байт данных
-        private Boolean sendByte(byte _byte)
-        {
-            if (receiverReady())
-            {
-                byte[] buf = new byte[1];
-                buf[0] = _byte;
-                try
-                {
-                    port.Write(buf, 0, 1);
-                }
-                catch (InvalidOperationException)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-            return false;
-
-        }
-
         //Пересылает кадр. Возвращает количество переданных байт кадра
         public int sendFrame(byte[] frame)
         {
-            int sended = 0;
-            foreach (byte _byte in frame)
+            if (readyToSend())
             {
-                if (sendByte(_byte))
-                    sended++;
-                else return sended;
+                port.Write(frame, 0, frame.Length);
+                return frame.Length;
             }
-            return sended;
+            return 0;
+        }
+
+        //Проверяет, свободен ли второй комп
+        public bool readyToSend()
+        {
+            return (port.BytesToWrite == 0 && receiverReady());           
         }
 
         //Метод для канального уровня
@@ -197,6 +160,7 @@ namespace KR_network
                 byte[] buf = new byte[dataForDLL.Count];
                 dataForDLL.CopyTo(buf, 0);
                 dataForDLL = new ConcurrentQueue<byte>();
+                setReady();
                 return buf;
             }
         }
@@ -210,6 +174,7 @@ namespace KR_network
                 {
                     foreach (byte bytik in array)
                         dataForDLL.Enqueue(bytik);
+                    setBusy();
                 }
             }
         }
@@ -220,16 +185,28 @@ namespace KR_network
             try
             {
                 if (port.BytesToRead >= port.ReadBufferSize)
-                    port.RtsEnable = false;
+                    setBusy();
                 byte[] buffer = new byte[port.BytesToRead];
                 port.Read(buffer, 0, buffer.Length);
                 if (port.BytesToRead < port.ReadBufferSize)
-                    port.RtsEnable = true;
+                    setReady();
                 sendToDLL(buffer);
             }
             catch (TimeoutException) { return; }
         }
 
+        //Устанавливает режим занятости порта
+        //Второй комп не может слать кадры
+        private void setBusy()
+        {
+            port.RtsEnable = false;
+        }
+
+        //Устанавливает режим готовности к приему
+        private void setReady()
+        {
+            port.RtsEnable = true;
+        }
 
       
     }
