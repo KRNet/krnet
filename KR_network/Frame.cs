@@ -24,7 +24,7 @@ namespace KR_network
             this.stopByte = 2;
             this.type = type;   //type = 1 для информационных кадров
             this.frameLength = 3;
-            if (type == 1)
+            if (this.type == 1)
             {
                 //Нужно вызывать кодирование сначала
                 this.lengthOfData = (byte)data.Length;
@@ -37,6 +37,11 @@ namespace KR_network
         public byte[] getData() 
         {
             return this.data;
+        }
+
+        public byte getType()
+        {
+            return this.type;
         }
 
         public bool isInformationFrame()
@@ -157,6 +162,11 @@ namespace KR_network
         public void decode(byte[] b)
         {
 
+        }
+
+        public bool damaged()
+        {
+            return false;
         }
 
     }

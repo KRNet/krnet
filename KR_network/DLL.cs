@@ -8,6 +8,7 @@ using System.Threading;
 
 namespace KR_network
 {
+    public static enum frameType { INFO = 1, ACK = 2, RET = 3};
     class DLL
     {
         private Thread threadFromAppLayer;
@@ -136,12 +137,21 @@ namespace KR_network
                         Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
                         if (newFrame.isInformationFrame())
                         {
-                            //Если кадр не поврежден шлем ACK
-                            Console.Write(getString(newFrame.getData()));
-                            this.stringsBuffer.Enqueue(
-                                                        getString(newFrame.getData())
-                                                    );
-                            //Иначе RET
+                            if (!newFrame.damaged())
+                            {
+                                Frame ackFrame = new Frame(new byte[0], 2);
+                                physicalLayer.sendFrame(ackFrame.serialize());
+                                Console.Write(getString(newFrame.getData()));
+                                this.stringsBuffer.Enqueue(
+                                                            getString(newFrame.getData())
+                                                        );
+                            }
+                            else
+                            {
+                                Frame retFrame = new Frame(new byte[0], 3);
+                                physicalLayer.sendFrame(retFrame.serialize());
+                            }
+                            
                         }
                         else
                         {
@@ -157,8 +167,6 @@ namespace KR_network
             }
 
         }
-        
-
 
         public void clearByteBuffer()
         {
@@ -168,10 +176,20 @@ namespace KR_network
         private void processControlFrame(Frame frame)
         {
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
+            if (frame.getType() == 2)
+            {
+                this.frameWasSended = false;
+                Frame pulled = null;
+                framesToSend.TryDequeue(out pulled);
+            }
             //Если пришел RET, то ставить флаг wasSended = false;
+            if (frame.getType() == 3)
+            {
+                this.frameWasSended = false;
+            }
             Console.WriteLine("processControlFrame");
 
         }
-        */
+        
     }
 }
