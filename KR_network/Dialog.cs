@@ -18,6 +18,8 @@ namespace KR_network
             messages.Items.Add("waiting for connection");
             Data.appLayer.setForm(this);
             Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
+            sendBtn.Enabled = false;
+            richTextBox1.Enabled = false;
         }
 
         private void sendBtn_Click(object sender, EventArgs e)

@@ -14,13 +14,15 @@ namespace KR_network
         private ConcurrentQueue<Msg> messageQueue;
         private ConcurrentQueue<Msg> systemQueue;
         private int countToSend;
-        ListBox listBox;
         Dialog dialogForm;
         
         public AppLayer(PhysicalLayer physicalLayer)
         {
             this.messageQueue = new ConcurrentQueue<Msg>();
+            this.systemQueue = new ConcurrentQueue<Msg>();
             new Thread(ReadFromDLL).Start();
+            new Thread(SendToDLL).Start();
+            new Thread(SendManageToDLL).Start();
             this.countToSend = 0;
         }
 
@@ -139,7 +141,7 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.CONNECT:
-                                    listBox.Items.Add("Соединение установлено");
+                                    dialogForm.messages.Items.Add("Соединение установлено");
                                     dialogForm.sendBtn.Enabled = true;
                                     dialogForm.richTextBox1.Enabled = true;
                                     break;

@@ -51,8 +51,10 @@ namespace KR_network
             {
                 Data.makePhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
                 this.Hide();
-                Dialog dialog = new Dialog();
+                Data.makeDLL();
                 Data.makeAppLayer();
+                Dialog dialog = new Dialog();
+                
                 while (!Data.physicalLayer.receiverReady());
                 dialog.Show();
             }
