@@ -8,6 +8,7 @@ using System.Threading;
 
 namespace KR_network
 {
+    //public static enum frameType { INFO = 1, ACK = 2, RET = 3};
     class DLL
     {
         private Thread threadFromAppLayer;
@@ -21,8 +22,8 @@ namespace KR_network
         private int countToSend;    //Контролирует очередь кадров на отправку
 
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 2;
-        private Byte startByte = 1;
+        private Byte stopByte = 254;
+        private Byte startByte = 253;
 
 
         private List<byte> byteBuffer;
@@ -49,29 +50,39 @@ namespace KR_network
         //Служба чтения с физического уровня
         private void readFromPhLayer()
         {
-            while (physicalLayer.connectionActive)
+            while (true)
             {
-                byte[] received = physicalLayer.getAllFromDllBuffer();
-                addBytes(received);
+                if (this.physicalLayer.connectionActive)
+                {
+                    byte[] received = physicalLayer.getAllFromDllBuffer();
+                    addBytes(received);
+                }
                 Thread.Sleep(200);
             }
+        
         }
 
         //Служба передачи кадров
         private void sendFrames()
         {
-            while (physicalLayer.connectionActive)
+            while (true)
             {
-                if (!frameWasSended || countToSend == 0)
+                if (this.physicalLayer.connectionActive)
                 {
-                    Frame frame;
-                    framesToSend.TryPeek(out frame);
-                    physicalLayer.sendFrame(frame.serialize());
-                    countToSend = 5;
+                    if ((!frameWasSended || countToSend == 0) && (!framesToSend.IsEmpty))
+                    {
+                        Frame frame;
+                        this.frameWasSended = true;
+                        framesToSend.TryPeek(out frame);
+                        physicalLayer.sendFrame(frame.serialize());
+                        framesToSend.TryDequeue(out frame);
+                        countToSend = 5;
+                    }
+                    countToSend -= 1;   
                 }
-                countToSend -= 1;
                 Thread.Sleep(200);
             }
+            
         }
 
         //Метод для прикладного уровня
@@ -136,12 +147,21 @@ namespace KR_network
                         Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
                         if (newFrame.isInformationFrame())
                         {
-                            //Если кадр не поврежден шлем ACK
-                            Console.Write(getString(newFrame.getData()));
-                            this.stringsBuffer.Enqueue(
-                                                        getString(newFrame.getData())
-                                                    );
-                            //Иначе RET
+                            if (!newFrame.damaged())
+                            {
+                                Frame ackFrame = new Frame(new byte[0], 2);
+                                physicalLayer.sendFrame(ackFrame.serialize());
+                                Console.Write(getString(newFrame.getData()));
+                                this.stringsBuffer.Enqueue(
+                                                            getString(newFrame.getData())
+                                                        );
+                            }
+                            else
+                            {
+                                Frame retFrame = new Frame(new byte[0], 3);
+                                physicalLayer.sendFrame(retFrame.serialize());
+                            }
+                            
                         }
                         else
                         {
@@ -157,8 +177,6 @@ namespace KR_network
             }
 
         }
-        
-
 
         public void clearByteBuffer()
         {
@@ -168,8 +186,18 @@ namespace KR_network
         private void processControlFrame(Frame frame)
         {
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
+            if (frame.getType() == 2)
+            {
+                Console.WriteLine("ACK received");
+                this.frameWasSended = false;
+                Frame pulled = null;
+                framesToSend.TryDequeue(out pulled);
+            }
             //Если пришел RET, то ставить флаг wasSended = false;
-            Console.WriteLine("processControlFrame");
+            if (frame.getType() == 3)
+            {
+                this.frameWasSended = false;
+            }
 
         }
         
