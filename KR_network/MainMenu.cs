@@ -53,6 +53,7 @@ namespace KR_network
                 this.Hide();
                 Dialog dialog = new Dialog();
                 Data.makeAppLayer();
+                while (!Data.physicalLayer.receiverReady());
                 dialog.Show();
             }
         }

@@ -14,11 +14,19 @@ namespace KR_network
         private ConcurrentQueue<Msg> messageQueue;
         private ConcurrentQueue<Msg> systemQueue;
         private int countToSend;
+        ListBox listBox;
+        Dialog dialogForm;
+        
         public AppLayer(PhysicalLayer physicalLayer)
         {
             this.messageQueue = new ConcurrentQueue<Msg>();
             new Thread(ReadFromDLL).Start();
             this.countToSend = 0;
+        }
+
+        public void setForm(Dialog dialog)
+        {
+            this.dialogForm = dialog;
         }
 
         public void SendInfoMessage(string msg)
@@ -30,7 +38,7 @@ namespace KR_network
         public void SendManageMessage(Msg.ManageType type)
         {
             Msg message = new Msg(type);
-            messageQueue.Enqueue(message);
+            systemQueue.Enqueue(message);
         }
 
         public void DeleteSentMessage()
@@ -64,7 +72,9 @@ namespace KR_network
                             tries++;
                         if (tries == MAX_TRIES)
                         {
-                            //добавить в форму сообщение о разъединении
+                            dialogForm.messages.Items.Add("Закрытие соединения. Проблема с сетью.");
+                            dialogForm.sendBtn.Enabled = false;
+                            dialogForm.richTextBox1.Enabled = false;
                             Data.physicalLayer.closeConnection();
                         }
                         previousMsg = msg;
@@ -79,7 +89,6 @@ namespace KR_network
         {
             while (true)
             {   
-                
                 if (!systemQueue.IsEmpty)
                 {
                     Msg msg;
@@ -90,7 +99,6 @@ namespace KR_network
             }
         }
         
-
         public void ReadFromDLL()
         {
             while (true)
@@ -102,20 +110,21 @@ namespace KR_network
                     switch (msg.getType())
                     {
                         case Msg.Types.info:
-                            //нужно вывести в форму
-                            SendManageMessage(Msg.ManageType.ACK);//послали подтверждение
+                            SendManageMessage(Msg.ManageType.ACK);
+                            dialogForm.messages.Items.Add(msg.getMessage());
                             break;
                         case Msg.Types.manage:
                             switch (msg.getManageType())
                             {
                                 case Msg.ManageType.REQUEST_CONNECT:
                                     SendManageMessage(Msg.ManageType.CONNECT);
-                                    //вывести сообщение о создании соединения
                                     break;
 
                                 case Msg.ManageType.REQUEST_DISCONNECT:
                                     SendManageMessage(Msg.ManageType.DISCONNECT);
-                                    //вывести сообщение о закрытии соединения
+                                    dialogForm.messages.Items.Add("Собеседник закрыл соединение");
+                                    dialogForm.sendBtn.Enabled = false;
+                                    dialogForm.richTextBox1.Enabled = false;
                                     break;
 
                                 case Msg.ManageType.ACK:
@@ -124,14 +133,16 @@ namespace KR_network
                                 
                                 case Msg.ManageType.DISCONNECT:
                                     Data.physicalLayer.closeConnection();
-                                    //вывести сообщение о закрытии соединения
+                                    dialogForm.messages.Items.Add("Соединение закрыто");
+                                    dialogForm.sendBtn.Enabled = false;
+                                    dialogForm.richTextBox1.Enabled = false;
                                     break;
 
                                 case Msg.ManageType.CONNECT:
-                                    //вывести сообщение о создании соединения соединения,
-                                    //разблокировать формы ввода
+                                    listBox.Items.Add("Соединение установлено");
+                                    dialogForm.sendBtn.Enabled = true;
+                                    dialogForm.richTextBox1.Enabled = true;
                                     break;
-
                             }
                             break;
                     }
@@ -139,6 +150,5 @@ namespace KR_network
                 Thread.Sleep(200);
             }
         }
-
     }
 }

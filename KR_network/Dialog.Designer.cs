@@ -90,9 +90,9 @@
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox richTextBox1;
-        private System.Windows.Forms.Button exitBtn;
-        private System.Windows.Forms.Button sendBtn;
-        private System.Windows.Forms.ListBox messages;
+        public System.Windows.Forms.RichTextBox richTextBox1;
+        public System.Windows.Forms.Button exitBtn;
+        public System.Windows.Forms.Button sendBtn;
+        public System.Windows.Forms.ListBox messages;
     }
 }
