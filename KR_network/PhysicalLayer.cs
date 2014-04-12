@@ -70,7 +70,7 @@ namespace KR_network
                 port.Handshake = Handshake.None;
                 port.Open();
                 port.DtrEnable = true;
-                connectionActive = true;
+                connectionActive = false;
                 return true;
             }
             catch (InvalidOperationException) { return false; }
@@ -136,7 +136,11 @@ namespace KR_network
             {
                 port.RtsEnable = true;
                 if (port.CtsHolding && testConnection())
+                {
+                    this.connectionActive = true;
                     return true;
+                }
+                    
                 return false;
             }
             catch (InvalidOperationException) { return false; }

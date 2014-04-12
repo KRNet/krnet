@@ -20,8 +20,8 @@ namespace KR_network
 
         public Frame(byte[] data, byte type)
         {
-            this.startByte = 1; //Стартовый байт = 1
-            this.stopByte = 2;
+            this.startByte = 253; //Стартовый байт = 1
+            this.stopByte = 254;
             this.type = type;   //type = 1 для информационных кадров
             this.frameLength = 3;
             if (this.type == 1)
@@ -54,13 +54,14 @@ namespace KR_network
 
         public byte[] serialize()
         {
-            byte[] serialized = new byte[frameLength];
-            serialized.ToList().Add(startByte);
-            serialized.ToList().Add(type);
-            serialized.ToList().Add(lengthOfData);           
-            foreach(var b in data){serialized.ToList().Add(b);}
-            serialized.ToList().Add(stopByte);
-            return serialized;
+            List<byte> serialized = new List<byte>();
+            serialized.Add(startByte);
+            serialized.Add(type);
+            serialized.Add(lengthOfData);
+            if (this.data != null)
+                foreach (var b in data) { serialized.Add(b); }
+            serialized.Add(stopByte);
+            return serialized.ToArray();
         }
 
         static public Frame deserialize(byte[] array)

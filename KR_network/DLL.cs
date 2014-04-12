@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace KR_network
 {
-    public static enum frameType { INFO = 1, ACK = 2, RET = 3};
+    //public static enum frameType { INFO = 1, ACK = 2, RET = 3};
     class DLL
     {
         private Thread threadFromAppLayer;
@@ -22,8 +22,8 @@ namespace KR_network
         private int countToSend;    //Контролирует очередь кадров на отправку
 
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 2;
-        private Byte startByte = 1;
+        private Byte stopByte = 254;
+        private Byte startByte = 253;
 
 
         private List<byte> byteBuffer;
@@ -50,29 +50,39 @@ namespace KR_network
         //Служба чтения с физического уровня
         private void readFromPhLayer()
         {
-            while (physicalLayer.connectionActive)
+            while (true)
             {
-                byte[] received = physicalLayer.getAllFromDllBuffer();
-                addBytes(received);
+                if (this.physicalLayer.connectionActive)
+                {
+                    byte[] received = physicalLayer.getAllFromDllBuffer();
+                    addBytes(received);
+                }
                 Thread.Sleep(200);
             }
+        
         }
 
         //Служба передачи кадров
         private void sendFrames()
         {
-            while (physicalLayer.connectionActive)
+            while (true)
             {
-                if (!frameWasSended || countToSend == 0)
+                if (this.physicalLayer.connectionActive)
                 {
-                    Frame frame;
-                    framesToSend.TryPeek(out frame);
-                    physicalLayer.sendFrame(frame.serialize());
-                    countToSend = 5;
+                    if ((!frameWasSended || countToSend == 0) && (!framesToSend.IsEmpty))
+                    {
+                        Frame frame;
+                        this.frameWasSended = true;
+                        framesToSend.TryPeek(out frame);
+                        physicalLayer.sendFrame(frame.serialize());
+                        framesToSend.TryDequeue(out frame);
+                        countToSend = 5;
+                    }
+                    countToSend -= 1;   
                 }
-                countToSend -= 1;
                 Thread.Sleep(200);
             }
+            
         }
 
         //Метод для прикладного уровня
@@ -178,6 +188,7 @@ namespace KR_network
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
             if (frame.getType() == 2)
             {
+                Console.WriteLine("ACK received");
                 this.frameWasSended = false;
                 Frame pulled = null;
                 framesToSend.TryDequeue(out pulled);
@@ -187,7 +198,6 @@ namespace KR_network
             {
                 this.frameWasSended = false;
             }
-            Console.WriteLine("processControlFrame");
 
         }
         
