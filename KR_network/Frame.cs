@@ -15,6 +15,7 @@ namespace KR_network
         private byte type;
         private byte lengthOfData;
         private byte[] data;
+        private byte checkSum;
         private int frameLength;
 
         public Frame(byte[] data, byte type)
@@ -30,6 +31,7 @@ namespace KR_network
                 this.data = data;
                 this.frameLength += lengthOfData + 1;
             }
+            
         }
 
         public byte[] serialize()
@@ -56,11 +58,11 @@ namespace KR_network
             {
                 byte length = array.ElementAt(2);
                 for (byte i = 3; i < 3 + length; i++)
+                    //Тут декодирование каждого байта
                     dataFromArray.Add(array[i]);
             }
             return new Frame(dataFromArray.ToArray(), type);
-
-        }
+        } 
 
         public void final(byte[] data)
         {

@@ -12,7 +12,14 @@ namespace KR_network
     {
         private Thread threadFromAppLayer;
         private Thread threadFromPhysicalLayer;
+        private Thread threadSendFrames;
+
         private ConcurrentQueue<String> dataFromAppLayer;
+        private ConcurrentQueue<Frame> framesToSend;
+
+        private Boolean frameWasSended; //Контролирует очередь кадров на отправку
+        private int countToSend;    //Контролирует очередь кадров на отправку
+
         private PhysicalLayer physicalLayer;
         private Byte stopByte = 254;
         private Byte startByte = 253;
@@ -26,10 +33,15 @@ namespace KR_network
         public DLL(PhysicalLayer physicalLayer)
         {
             this.physicalLayer = physicalLayer;
+            frameWasSended = false;
+            countToSend = 5;    //5 циклов по 200мс
+            framesToSend = new ConcurrentQueue<Frame>();
             byteBuffer = new List<byte>();
             stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
+            threadSendFrames = new Thread(sendFrames);
+            threadSendFrames.Start();
             
         }
 
@@ -40,6 +52,23 @@ namespace KR_network
             {
                 byte[] received = physicalLayer.getAllFromDllBuffer();
                 addBytes(received);
+                Thread.Sleep(200);
+            }
+        }
+
+        //Служба передачи кадров
+        private void sendFrames()
+        {
+            while (physicalLayer.connectionActive)
+            {
+                if (!frameWasSended || countToSend == 0)
+                {
+                    Frame frame;
+                    framesToSend.TryPeek(out frame);
+                    physicalLayer.sendFrame(frame.serialize());
+                    countToSend = 5;
+                }
+                countToSend -= 1;
                 Thread.Sleep(200);
             }
         }
@@ -74,10 +103,11 @@ namespace KR_network
             return new Frame(getBytes(data), type); // сделать конструктор
         }
 
+        //Метод для прикладного уровня
         public void sendMessage(String data)
         {
             Frame frame = makeFrame(data);
-            physicalLayer.sendFrame(frame.serialize());
+            framesToSend.Enqueue(frame);
         }
 
         public void addBytes(byte[] b)
@@ -96,18 +126,25 @@ namespace KR_network
                 {
                     if (b[i] == startByte)
                     {
+                        
                         this.byteBuffer.Clear();
                         this.byteBuffer.Add(b[i]);
                     }
                     else if (b[i] == stopByte)
                     {
                         this.byteBuffer.Add(b[i]);
+                        
                         Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
+                                                
                         if (newFrame.isInformationFrame())
                         {
-                            this.stringsBuffer.Enqueue(
+                            //Если кадр не испорчен
+                                //physicalLayer.sendFrame(ACK);
+                                this.stringsBuffer.Enqueue(
                                                         getString(newFrame.getData())
                                                     );
+                            //Иначе 
+                                //physicalLayer.sendFrame(RET);
                         }
                         else
                         {
@@ -124,6 +161,8 @@ namespace KR_network
 
         }
 
+        
+
 
         public void clearByteBuffer()
         {
@@ -132,6 +171,8 @@ namespace KR_network
 
         private void processControlFrame(Frame frame)
         {
+            //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
+            //Если пришел RET, то ставить флаг wasSended = false;
             Console.WriteLine("processControlFrame");
         }
     }
