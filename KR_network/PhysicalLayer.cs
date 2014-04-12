@@ -59,7 +59,15 @@ namespace KR_network
         public static List<String> searchPorts()
         {
             String[] ports = SerialPort.GetPortNames();
-            return ports.ToList();
+            List<String>portsList = new List<string>();
+            foreach (var port in ports){
+                SerialPort p = new SerialPort(port);
+                if (!p.IsOpen)
+                {
+                    portsList.Add(port);
+                }
+            }
+            return portsList;
         }
 
         //Запускает порт
