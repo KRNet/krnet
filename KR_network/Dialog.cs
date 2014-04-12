@@ -12,14 +12,21 @@ namespace KR_network
 {
     public partial class Dialog : Form
     {
-        public Dialog()
+        private MainMenu parent;
+        public Dialog(MainMenu parent)
         {
             InitializeComponent();
+            this.parent = parent;
             messages.Items.Add("waiting for connection");
             Data.appLayer.setForm(this);
             Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
             sendBtn.Enabled = false;
             richTextBox1.Enabled = false;
+        }
+
+        public MainMenu getParent()
+        {
+            return parent;
         }
 
         private void sendBtn_Click(object sender, EventArgs e)
@@ -36,7 +43,17 @@ namespace KR_network
 
         private void exitBtn_Click(object sender, EventArgs e)
         {
-            this.Close();
+            if (Data.physicalLayer.receiverReady())
+            {
+                messages.Items.Add("Пытаюсь закрыть соединение");
+                Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_DISCONNECT);
+            }
+            else
+            {
+                this.Hide();
+                parent.Show();
+            }
+
         }
     }
 }

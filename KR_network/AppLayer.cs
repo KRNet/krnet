@@ -15,6 +15,7 @@ namespace KR_network
         private ConcurrentQueue<Msg> systemQueue;
         private int countToSend;
         Dialog dialogForm;
+        ListBox listbox;
         
         public AppLayer(PhysicalLayer physicalLayer)
         {
@@ -28,7 +29,17 @@ namespace KR_network
 
         public void setForm(Dialog dialog)
         {
+            //this.listbox = listbox;
             this.dialogForm = dialog;
+        }
+
+        public void closeConnection(String message)
+        {
+            dialogForm.messages.Items.Add(message);
+            dialogForm.sendBtn.Enabled = false;
+            dialogForm.richTextBox1.Enabled = false;
+            dialogForm.info_text.Text = "Соединение закрыто";
+            Data.physicalLayer.closeConnection();
         }
 
         public void SendInfoMessage(string msg)
@@ -70,17 +81,19 @@ namespace KR_network
                             firstTime = false;
                         }
                         Data.dll.sendMessage(msg.toString());
+                        dialogForm.info_text.Text = "Выполняется передача";
+                        dialogForm.richTextBox1.Text = "";
                         if (previousMsg != null && previousMsg.Equals(msg))
                             tries++;
                         if (tries == MAX_TRIES)
                         {
-                            dialogForm.messages.Items.Add("Закрытие соединения. Проблема с сетью.");
-                            dialogForm.sendBtn.Enabled = false;
-                            dialogForm.richTextBox1.Enabled = false;
-                            Data.physicalLayer.closeConnection();
+                            closeConnection("Закрытие соединения. Проблема с сетью.");
                         }
                         previousMsg = msg;
                     }
+                    else
+                        if (!firstTime)
+                            dialogForm.info_text.Text = "Все сообщения отправлены";
                     countToSend = 10;                  
                 }
                 Thread.Sleep(100);
@@ -109,45 +122,46 @@ namespace KR_network
                 if (!message.Equals(""))
                 {
                     Msg msg = Msg.toMsg(message);
-                    switch (msg.getType())
-                    {
-                        case Msg.Types.info:
-                            SendManageMessage(Msg.ManageType.ACK);
-                            dialogForm.messages.Items.Add(msg.getMessage());
-                            break;
-                        case Msg.Types.manage:
-                            switch (msg.getManageType())
-                            {
-                                case Msg.ManageType.REQUEST_CONNECT:
-                                    SendManageMessage(Msg.ManageType.CONNECT);
-                                    break;
+                   // lock (dialogForm)
+                    //{
+                        switch (msg.getType())
+                        {
+                            case Msg.Types.info:
+                                dialogForm.messages.Items.Add(msg.getMessage());
+                                SendManageMessage(Msg.ManageType.ACK);
+                                break;
+                            case Msg.Types.manage:
+                                switch (msg.getManageType())
+                                {
+                                    case Msg.ManageType.REQUEST_CONNECT:
+                                        SendManageMessage(Msg.ManageType.CONNECT);
+                                        break;
 
-                                case Msg.ManageType.REQUEST_DISCONNECT:
-                                    SendManageMessage(Msg.ManageType.DISCONNECT);
-                                    dialogForm.messages.Items.Add("Собеседник закрыл соединение");
-                                    dialogForm.sendBtn.Enabled = false;
-                                    dialogForm.richTextBox1.Enabled = false;
-                                    break;
+                                    case Msg.ManageType.REQUEST_DISCONNECT:
+                                        Data.dll.sendMessage((new Msg(Msg.ManageType.DISCONNECT)).toString());// сразу послать, потом закрыть порт
+                                        Thread.Sleep(500);//на всякий
+                                        closeConnection("Собеседник закрыл соединение");
+                                        break;
 
-                                case Msg.ManageType.ACK:
-                                    DeleteSentMessage();
-                                    break;
-                                
-                                case Msg.ManageType.DISCONNECT:
-                                    Data.physicalLayer.closeConnection();
-                                    dialogForm.messages.Items.Add("Соединение закрыто");
-                                    dialogForm.sendBtn.Enabled = false;
-                                    dialogForm.richTextBox1.Enabled = false;
-                                    break;
+                                    case Msg.ManageType.ACK:
+                                        DeleteSentMessage();
+                                        break;
 
-                                case Msg.ManageType.CONNECT:
-                                    dialogForm.messages.Items.Add("Соединение установлено");
-                                    dialogForm.sendBtn.Enabled = true;
-                                    dialogForm.richTextBox1.Enabled = true;
-                                    break;
-                            }
-                            break;
-                    }
+                                    case Msg.ManageType.DISCONNECT:
+                                        closeConnection("Соединение закрыто");
+                                        dialogForm.Hide();
+                                        dialogForm.getParent().Show();
+                                        break;
+
+                                    case Msg.ManageType.CONNECT:
+                                        dialogForm.messages.Items.Add("Соединение установлено");
+                                        dialogForm.sendBtn.Enabled = true;
+                                        dialogForm.richTextBox1.Enabled = true;
+                                        break;
+                                }
+                                break;
+                        }
+                    //}
                 }
                 Thread.Sleep(200);
             }

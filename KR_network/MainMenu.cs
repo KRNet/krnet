@@ -12,11 +12,11 @@ namespace KR_network
 {
     public partial class MainMenu : Form
     {
-        string _speed;
-        int _parity;
-        string _stopBits;
-        string _nickname;
-        string _portName;
+        string _speed = "9600";
+        int _parity = 1;
+        string _stopBits = "0";
+        string _nickname = "aa";
+        string _portName= "COM10";
         public MainMenu()
         {
             InitializeComponent();
@@ -43,21 +43,21 @@ namespace KR_network
         private void connectBtn_Click(object sender, EventArgs e)
         {
             _nickname = nickname.Text;
-            if (_nickname == "" || _speed == null || _portName == null || _stopBits == null)
-            {
-                MessageBox.Show("Wrong parameters");
-            }
-            else
-            {
-                Data.makePhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
+            //if (_nickname == "" || _speed == null || _portName == null || _stopBits == null)
+            //{
+              //  MessageBox.Show("Wrong parameters");
+            //}
+            //else
+            //{
+                Data.makePhysicalLayer("COM10", 9600, 1, 8, 1);
                 this.Hide();
                 Data.makeDLL();
                 Data.makeAppLayer();
-                Dialog dialog = new Dialog();
+                Dialog dialog = new Dialog(this);
                 
                 while (!Data.physicalLayer.receiverReady());
                 dialog.Show();
-            }
+            //}
         }
 
         private void portName_SelectedIndexChanged(object sender, EventArgs e)
