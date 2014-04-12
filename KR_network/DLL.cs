@@ -69,15 +69,17 @@ namespace KR_network
             {
                 if (this.physicalLayer.connectionActive)
                 {
+                    if (frameWasSended)
+                        Console.WriteLine("ACK не пришел");
                     if (!frameWasSended || countToSend == 0)
                     {
                         if (!framesToSend.IsEmpty)
                         {
+                            Console.WriteLine("Sending frame");
                             Frame frame;
                             this.frameWasSended = true;
                             framesToSend.TryPeek(out frame);
                             physicalLayer.sendFrame(frame.serialize());
-                            framesToSend.TryDequeue(out frame);
                             countToSend = 5;
                         }
                     }
@@ -87,7 +89,7 @@ namespace KR_network
                     }
                       
                 }
-                Thread.Sleep(200);
+                Thread.Sleep(50);
             }
             
         }
