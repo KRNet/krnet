@@ -89,7 +89,7 @@ namespace KR_network
                     }
                       
                 }
-                Thread.Sleep(50);
+                Thread.Sleep(200);
             }
             
         }
