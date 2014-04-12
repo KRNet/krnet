@@ -69,16 +69,23 @@ namespace KR_network
             {
                 if (this.physicalLayer.connectionActive)
                 {
-                    if ((!frameWasSended || countToSend == 0) && (!framesToSend.IsEmpty))
+                    if (!frameWasSended || countToSend == 0)
                     {
-                        Frame frame;
-                        this.frameWasSended = true;
-                        framesToSend.TryPeek(out frame);
-                        physicalLayer.sendFrame(frame.serialize());
-                        framesToSend.TryDequeue(out frame);
-                        countToSend = 5;
+                        if (!framesToSend.IsEmpty)
+                        {
+                            Frame frame;
+                            this.frameWasSended = true;
+                            framesToSend.TryPeek(out frame);
+                            physicalLayer.sendFrame(frame.serialize());
+                            framesToSend.TryDequeue(out frame);
+                            countToSend = 5;
+                        }
                     }
-                    countToSend -= 1;   
+                    else
+                    {
+                        countToSend -= 1; 
+                    }
+                      
                 }
                 Thread.Sleep(200);
             }
@@ -150,8 +157,12 @@ namespace KR_network
                             if (!newFrame.damaged())
                             {
                                 Frame ackFrame = new Frame(new byte[0], 2);
+
+                                Console.WriteLine(getString(newFrame.getData()));
+                                Console.WriteLine("Sending ACK...");
+
                                 physicalLayer.sendFrame(ackFrame.serialize());
-                                Console.Write(getString(newFrame.getData()));
+
                                 this.stringsBuffer.Enqueue(
                                                             getString(newFrame.getData())
                                                         );
