@@ -16,17 +16,12 @@ namespace KR_network
 
         static void Main()
         {
-            /*
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainMenu());
-            */
-            PhysicalLayer pl = new PhysicalLayer("COM1", 9600, 1, 8, 1);
-            DLL dll = new DLL(pl);
-            while (!pl.receiverReady()) { }
-            dll.sendMessage("msg abc def msg abc def msg abc def msg abc def msg abc def");
-            Console.Read();
-            Console.Read();
+            //frame.Initialize();
+            //Thread t = new Thread(write);
+            //t.Start();
             
         }
         

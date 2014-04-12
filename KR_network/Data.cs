@@ -22,6 +22,11 @@ namespace KR_network
             physicalLayer = new PhysicalLayer(_portName, _speed, _parity, what, _stopBits);
         }
 
+        static public void makeDLL()
+        {
+            dll = new DLL(physicalLayer);
+        }
+
 
 
     }

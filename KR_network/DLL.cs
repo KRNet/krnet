@@ -21,8 +21,9 @@ namespace KR_network
         private int countToSend;    //Контролирует очередь кадров на отправку
 
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 254;
-        private Byte startByte = 253;
+        private Byte stopByte = 2;
+        private Byte startByte = 1;
+
 
         private List<byte> byteBuffer;
         private LinkedList<Frame> frameBuffer;
@@ -42,7 +43,7 @@ namespace KR_network
             threadFromPhysicalLayer.Start();
             threadSendFrames = new Thread(sendFrames);
             threadSendFrames.Start();
-            
+
         }
 
         //Служба чтения с физического уровня
@@ -109,7 +110,7 @@ namespace KR_network
             Frame frame = makeFrame(data);
             framesToSend.Enqueue(frame);
         }
-
+        
         public void addBytes(byte[] b)
         {
             Array byteArray = Array.CreateInstance(typeof(byte), (long)b.Count());
@@ -126,25 +127,21 @@ namespace KR_network
                 {
                     if (b[i] == startByte)
                     {
-                        
                         this.byteBuffer.Clear();
                         this.byteBuffer.Add(b[i]);
                     }
                     else if (b[i] == stopByte)
                     {
                         this.byteBuffer.Add(b[i]);
-                        
                         Frame newFrame = Frame.deserialize(this.byteBuffer.ToArray());
-                                                
                         if (newFrame.isInformationFrame())
                         {
-                            //Если кадр не испорчен
-                                //physicalLayer.sendFrame(ACK);
-                                this.stringsBuffer.Enqueue(
+                            //Если кадр не поврежден шлем ACK
+                            Console.Write(getString(newFrame.getData()));
+                            this.stringsBuffer.Enqueue(
                                                         getString(newFrame.getData())
                                                     );
-                            //Иначе 
-                                //physicalLayer.sendFrame(RET);
+                            //Иначе RET
                         }
                         else
                         {
@@ -160,7 +157,6 @@ namespace KR_network
             }
 
         }
-
         
 
 
@@ -174,6 +170,8 @@ namespace KR_network
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
             //Если пришел RET, то ставить флаг wasSended = false;
             Console.WriteLine("processControlFrame");
+
         }
+        */
     }
 }

@@ -20,8 +20,8 @@ namespace KR_network
 
         public Frame(byte[] data, byte type)
         {
-            this.startByte = 253; //Стартовый байт = 1
-            this.stopByte = 254;
+            this.startByte = 1; //Стартовый байт = 1
+            this.stopByte = 2;
             this.type = type;   //type = 1 для информационных кадров
             this.frameLength = 3;
             if (type == 1)
@@ -34,20 +34,28 @@ namespace KR_network
             
         }
 
+        public byte[] getData() 
+        {
+            return this.data;
+        }
+
+        public bool isInformationFrame()
+        {
+            if (this.type == 1)
+                return true;
+            else
+                return false;
+        }
+
         public byte[] serialize()
         {
-            List<byte> serialized = new List<byte>();
-            serialized.Add(startByte);
-            serialized.Add(type);
-            if (type == 1)
-            {
-                serialized.Add(lengthOfData);
-                foreach (var b in data) { 
-                    serialized.Add(b); 
-                }
-            }
-            serialized.Add(stopByte);
-            return serialized.ToArray();
+            byte[] serialized = new byte[frameLength];
+            serialized.ToList().Add(startByte);
+            serialized.ToList().Add(type);
+            serialized.ToList().Add(lengthOfData);           
+            foreach(var b in data){serialized.ToList().Add(b);}
+            serialized.ToList().Add(stopByte);
+            return serialized;
         }
 
         static public Frame deserialize(byte[] array)
@@ -63,6 +71,7 @@ namespace KR_network
             }
             return new Frame(dataFromArray.ToArray(), type);
         } 
+
 
         public void final(byte[] data)
         {
@@ -147,20 +156,6 @@ namespace KR_network
 
         public void decode(byte[] b)
         {
-
-        }
-
-        public byte[] getData() 
-        {
-            return this.data;
-        }
-
-        public bool isInformationFrame()
-        {
-            if (this.type == 1)
-                return true;
-            else
-                return false;
 
         }
 
