@@ -19,7 +19,7 @@ namespace KR_network
             DLL dll = new DLL(pl);
             while (!pl.receiverReady()) { }
             Console.WriteLine("sending 'abc'...");
-            dll.sendMessage("abc");
+            dll.sendMessage("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234A");
             
             Console.WriteLine("sending 'def'...");
             dll.sendMessage("def");

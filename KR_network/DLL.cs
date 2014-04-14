@@ -148,6 +148,7 @@ namespace KR_network
             }
         }
 
+        //Обработка системного кадра
         private void processControlFrame(Frame frame)
         {
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
@@ -165,6 +166,7 @@ namespace KR_network
             }
         }
 
+        //Обработка информационного кадра
         private void processInfoFrame(Frame frame)
         {
             if (!frame.damaged())

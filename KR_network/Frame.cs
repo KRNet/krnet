@@ -30,7 +30,6 @@ namespace KR_network
                 this.data = data;
                 this.frameLength += lengthOfData + 1;
             }
-            
         }
 
         public byte[] getData() 
