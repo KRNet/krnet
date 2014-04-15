@@ -14,19 +14,32 @@ namespace KR_network
         private ConcurrentQueue<Msg> messageQueue;
         private ConcurrentQueue<Msg> systemQueue;
         private int countToSend;
-        ListBox listBox;
         Dialog dialogForm;
         
         public AppLayer(PhysicalLayer physicalLayer)
         {
             this.messageQueue = new ConcurrentQueue<Msg>();
+            this.systemQueue = new ConcurrentQueue<Msg>();
             new Thread(ReadFromDLL).Start();
+            new Thread(SendToDLL).Start();
+            new Thread(SendManageToDLL).Start();
             this.countToSend = 0;
         }
 
         public void setForm(Dialog dialog)
         {
             this.dialogForm = dialog;
+        }
+
+        public void closeConnection(String message)
+        {
+            dialogForm.messages.Items.Add(message);
+            dialogForm.sendBtn.Enabled = false;
+            dialogForm.richTextBox1.Enabled = false;
+            dialogForm.info_text.Text = "Соединение закрыто";
+            systemQueue = new ConcurrentQueue<Msg>();
+            messageQueue = new ConcurrentQueue<Msg>();
+            Data.physicalLayer.closeConnection();
         }
 
         public void SendInfoMessage(string msg)
@@ -50,7 +63,7 @@ namespace KR_network
 
         public void SendToDLL()
         {
-            const int MAX_TRIES = 3;
+            const int MAX_TRIES = 2;
             Msg previousMsg = null;
             int tries = 0;
             bool firstTime = true;
@@ -62,23 +75,25 @@ namespace KR_network
                     {
                         Msg msg;
                         messageQueue.TryPeek(out msg);
+                        
                         if (firstTime)
                         {
                             previousMsg = msg;
                             firstTime = false;
                         }
                         Data.dll.sendMessage(msg.toString());
+                        dialogForm.info_text.Text = "Выполняется передача";
                         if (previousMsg != null && previousMsg.Equals(msg))
                             tries++;
                         if (tries == MAX_TRIES)
                         {
-                            dialogForm.messages.Items.Add("Закрытие соединения. Проблема с сетью.");
-                            dialogForm.sendBtn.Enabled = false;
-                            dialogForm.richTextBox1.Enabled = false;
-                            Data.physicalLayer.closeConnection();
+                            closeConnection("Закрытие соединения. Проблема с сетью.");
                         }
                         previousMsg = msg;
                     }
+                    else
+                        if (!firstTime)
+                            dialogForm.info_text.Text = "Все сообщения отправлены";
                     countToSend = 10;                  
                 }
                 Thread.Sleep(100);
@@ -92,8 +107,9 @@ namespace KR_network
                 if (!systemQueue.IsEmpty)
                 {
                     Msg msg;
-                    this.systemQueue.TryDequeue(out msg);
+                    while(!this.systemQueue.TryDequeue(out msg));
                     Data.dll.sendMessage(msg.toString());
+                    dialogForm.messages.Items.Add("sended " + msg.toString());
                 }
                 Thread.Sleep(100);
             }
@@ -107,11 +123,13 @@ namespace KR_network
                 if (!message.Equals(""))
                 {
                     Msg msg = Msg.toMsg(message);
+                    dialogForm.messages.Items.Add("recieved  " + msg.toString());
+             
                     switch (msg.getType())
                     {
                         case Msg.Types.info:
-                            SendManageMessage(Msg.ManageType.ACK);
                             dialogForm.messages.Items.Add(msg.getMessage());
+                            SendManageMessage(Msg.ManageType.ACK);
                             break;
                         case Msg.Types.manage:
                             switch (msg.getManageType())
@@ -121,25 +139,24 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.REQUEST_DISCONNECT:
-                                    SendManageMessage(Msg.ManageType.DISCONNECT);
-                                    dialogForm.messages.Items.Add("Собеседник закрыл соединение");
-                                    dialogForm.sendBtn.Enabled = false;
-                                    dialogForm.richTextBox1.Enabled = false;
+                                    Data.dll.sendMessage((new Msg(Msg.ManageType.DISCONNECT)).toString());// сразу послать, потом закрыть порт
+                                    Thread.Sleep(1500);//на всякий
+                                    closeConnection("Собеседник закрыл соединение");
+                                    dialogForm.info_text.Text = "Соединение не установлено";
                                     break;
 
                                 case Msg.ManageType.ACK:
                                     DeleteSentMessage();
                                     break;
-                                
+
                                 case Msg.ManageType.DISCONNECT:
-                                    Data.physicalLayer.closeConnection();
-                                    dialogForm.messages.Items.Add("Соединение закрыто");
-                                    dialogForm.sendBtn.Enabled = false;
-                                    dialogForm.richTextBox1.Enabled = false;
+                                    closeConnection("Соединение закрыто");
+                                    dialogForm.Close();
+                                    dialogForm.getParent().Show();
                                     break;
 
                                 case Msg.ManageType.CONNECT:
-                                    listBox.Items.Add("Соединение установлено");
+                                    dialogForm.messages.Items.Add("Соединение установлено");
                                     dialogForm.sendBtn.Enabled = true;
                                     dialogForm.richTextBox1.Enabled = true;
                                     break;

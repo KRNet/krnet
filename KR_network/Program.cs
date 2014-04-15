@@ -12,9 +12,7 @@ namespace KR_network
     {
         static void Main()
         {
-            //Application.EnableVisualStyles();
-            //Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new MainMenu());
+/*
             PhysicalLayer pl = new PhysicalLayer("COM1", 1, 1, 8, 1);
             DLL dll = new DLL(pl);
             while (!pl.receiverReady()) { }
@@ -24,8 +22,12 @@ namespace KR_network
             Console.WriteLine("sending 'def'...");
             dll.sendMessage("def");
             Console.ReadKey();
+*/
+            System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = false;
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainMenu());    
 
-            
         }
         
     }

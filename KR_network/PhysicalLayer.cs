@@ -68,7 +68,7 @@ namespace KR_network
         }
 
         //Запускает порт
-        private Boolean makeActive()
+        public Boolean makeActive()
         {
             try
             {
@@ -138,12 +138,11 @@ namespace KR_network
         //Пересылает кадр. Возвращает количество переданных байт кадра
         public int sendFrame(byte[] frame)
         {
-            if (readyToSend())
-            {
+            //if (readyToSend())
+            //{
                 port.Write(frame, 0, frame.Length);
                 return frame.Length;
-            }
-            return 0;
+            //}
         }
 
         //Проверяет, свободен ли второй комп
@@ -172,9 +171,10 @@ namespace KR_network
             {
                 lock (dataForDLL)
                 {
+                    setBusy();
                     foreach (byte bytik in array)
                         dataForDLL.Enqueue(bytik);
-                    setBusy();
+                    
                 }
             }
         }
@@ -207,7 +207,5 @@ namespace KR_network
         {
             port.RtsEnable = true;
         }
-
-      
     }
 }
