@@ -37,6 +37,9 @@ namespace KR_network
 
         private List<byte> chunk = new List<byte>();
 
+        public const byte ACK = 2;
+        public const byte RET = 3;
+
         public DLL(PhysicalLayer physicalLayer)
         {
             this.physicalLayer = physicalLayer;
@@ -123,7 +126,7 @@ namespace KR_network
             return new string(chars);
         }
 
-        public Frame makeFrame(String data)
+        public Frame makeInformationFrame(String data)
         {
             byte type = 1; //Информационный кадр
             return new Frame(getBytes(data), type); // сделать конструктор
@@ -132,26 +135,36 @@ namespace KR_network
         //Метод для прикладного уровня
         public void sendMessage(String data)
         {
-            Frame frame = makeFrame(data);
+            Frame frame = makeInformationFrame(data);
             framesToSend.Enqueue(frame);
         }
 
         public void process(byte[] b)
         {
-            Frame receivedFrame = Frame.deserialize(b);
-            if (receivedFrame.isInformationFrame()){
-                processInfoFrame(receivedFrame);
+            byte typeOut = 0;
+            Frame receivedFrame = Frame.deserialize(b, out typeOut);
+            if (receivedFrame == null && typeOut == 1)
+            {
+                sendRetryFrame();
             }
             else
             {
-                processControlFrame(receivedFrame);
+                if (receivedFrame.isInformationFrame())
+                {
+                    processInfoFrame(receivedFrame);
+                }
+                else
+                {
+                    processControlFrame(receivedFrame);
+                }
             }
+            
         }
 
         private void processControlFrame(Frame frame)
         {
             //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
-            if (frame.getType() == 2)
+            if (frame.getType() == ACK)
             {
                 Console.WriteLine("ACK received");
                 this.frameWasSended = false;
@@ -159,7 +172,7 @@ namespace KR_network
                 framesToSend.TryDequeue(out pulled);
             }
             //Если пришел RET, то ставить флаг wasSended = false;
-            if (frame.getType() == 3)
+            if (frame.getType() == RET)
             {
                 this.frameWasSended = false;
             }
@@ -167,8 +180,6 @@ namespace KR_network
 
         private void processInfoFrame(Frame frame)
         {
-            if (!frame.damaged())
-            {
                 Frame ackFrame = new Frame(new byte[0], 2);
 
                 Console.WriteLine(getString(frame.getData()));
@@ -177,12 +188,13 @@ namespace KR_network
                 physicalLayer.sendFrame(ackFrame.serialize());
 
                 this.stringsBuffer.Enqueue(getString(frame.getData()));
-            }
-            else
-            {
-                Frame retFrame = new Frame(new byte[0], 3);
-                physicalLayer.sendFrame(retFrame.serialize());
-            }
+
+        }
+
+        private void sendRetryFrame()
+        {
+            Frame retFrame = new Frame(new byte[0], RET);
+            physicalLayer.sendFrame(retFrame.serialize());
         }
         
     }
