@@ -38,18 +38,21 @@
             // 
             // richTextBox1
             // 
-            this.richTextBox1.Location = new System.Drawing.Point(12, 208);
+            this.richTextBox1.Location = new System.Drawing.Point(14, 260);
+            this.richTextBox1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.richTextBox1.MaxLength = 255;
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(309, 68);
+            this.richTextBox1.Size = new System.Drawing.Size(347, 84);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
+            this.richTextBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.keyDown);
             // 
             // exitBtn
             // 
-            this.exitBtn.Location = new System.Drawing.Point(12, 328);
+            this.exitBtn.Location = new System.Drawing.Point(14, 410);
+            this.exitBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.exitBtn.Name = "exitBtn";
-            this.exitBtn.Size = new System.Drawing.Size(129, 70);
+            this.exitBtn.Size = new System.Drawing.Size(145, 88);
             this.exitBtn.TabIndex = 4;
             this.exitBtn.Text = "Выйти";
             this.exitBtn.UseVisualStyleBackColor = true;
@@ -57,9 +60,10 @@
             // 
             // sendBtn
             // 
-            this.sendBtn.Location = new System.Drawing.Point(147, 328);
+            this.sendBtn.Location = new System.Drawing.Point(165, 410);
+            this.sendBtn.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.sendBtn.Name = "sendBtn";
-            this.sendBtn.Size = new System.Drawing.Size(174, 70);
+            this.sendBtn.Size = new System.Drawing.Size(196, 88);
             this.sendBtn.TabIndex = 3;
             this.sendBtn.Text = "Отправить";
             this.sendBtn.UseVisualStyleBackColor = true;
@@ -67,42 +71,44 @@
             // 
             // messages
             // 
-            this.messages.Enabled = false;
             this.messages.FormattingEnabled = true;
-            this.messages.ItemHeight = 16;
-            this.messages.Location = new System.Drawing.Point(13, 13);
+            this.messages.ItemHeight = 20;
+            this.messages.Location = new System.Drawing.Point(15, 16);
+            this.messages.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.messages.Name = "messages";
-            this.messages.Size = new System.Drawing.Size(308, 180);
+            this.messages.Size = new System.Drawing.Size(346, 224);
             this.messages.TabIndex = 5;
             // 
             // info
             // 
             this.info.AutoSize = true;
-            this.info.Location = new System.Drawing.Point(9, 289);
+            this.info.Location = new System.Drawing.Point(10, 361);
             this.info.Name = "info";
-            this.info.Size = new System.Drawing.Size(79, 17);
+            this.info.Size = new System.Drawing.Size(91, 20);
             this.info.TabIndex = 6;
             this.info.Text = "Состояние";
             // 
             // info_text
             // 
             this.info_text.Enabled = false;
-            this.info_text.Location = new System.Drawing.Point(95, 289);
+            this.info_text.Location = new System.Drawing.Point(107, 361);
+            this.info_text.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.info_text.Name = "info_text";
-            this.info_text.Size = new System.Drawing.Size(224, 22);
+            this.info_text.Size = new System.Drawing.Size(252, 26);
             this.info_text.TabIndex = 7;
             // 
             // Dialog
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(331, 410);
+            this.ClientSize = new System.Drawing.Size(372, 512);
             this.Controls.Add(this.info_text);
             this.Controls.Add(this.info);
             this.Controls.Add(this.messages);
             this.Controls.Add(this.exitBtn);
             this.Controls.Add(this.sendBtn);
             this.Controls.Add(this.richTextBox1);
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Dialog";
             this.Text = "Диалог";
             this.ResumeLayout(false);

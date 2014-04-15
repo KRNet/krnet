@@ -19,18 +19,17 @@ namespace KR_network
 
         public Frame(byte[] data, byte type)
         {
-            this.startByte = 253; //Стартовый байт = 1
-            this.stopByte = 254;
+            this.startByte = Data.STARTByte; //Стартовый байт = 1
+            this.stopByte = Data.STOPByte;
             this.type = type;   //type = 1 для информационных кадров
             this.frameLength = 3;
-            if (this.type == 1)
+            if (this.type == Data.INFOFrame)
             {
                 //Нужно вызывать кодирование сначала
                 this.lengthOfData = (byte)data.Length;
                 this.data = data;
                 this.frameLength += lengthOfData + 1;
             }
-            
         }
 
         public byte[] getData() 
@@ -45,7 +44,7 @@ namespace KR_network
 
         public bool isInformationFrame()
         {
-            return this.type == 1;
+            return this.type == Data.INFOFrame;
         }
 
         public byte[] serialize()
@@ -65,7 +64,7 @@ namespace KR_network
             byte type = array.ElementAt(1);
             typeOut = type;
             byte[] dataFromArray = null;
-            if (type == 1)  //Если кадр информационный
+            if (type == Data.INFOFrame)  //Если кадр информационный
             {
                 byte length = array.ElementAt(2);
                 

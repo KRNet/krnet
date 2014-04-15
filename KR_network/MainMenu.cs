@@ -49,14 +49,22 @@ namespace KR_network
             //}
             //else
             //{
-                Data.makePhysicalLayer("COM10", 9600, 1, 8, 1);
+                if (Data.physicalLayer == null)
+                {
+                    Data.makePhysicalLayer("COM2", 9600, 1, 8, 1);
+                    Data.makeDLL();
+                    Data.makeAppLayer();
+                }
+                Waiting waiting = new Waiting();
+                waiting.Show();
                 this.Hide();
-                Data.makeDLL();
-                Data.makeAppLayer();
                 Dialog dialog = new Dialog(this);
-                
+                Data.physicalLayer.makeActive();
                 while (!Data.physicalLayer.receiverReady());
+                waiting.Close();
+                this.Hide();
                 dialog.Show();
+                Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
             //}
         }
 

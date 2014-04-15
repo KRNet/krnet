@@ -19,7 +19,6 @@ namespace KR_network
             this.parent = parent;
             messages.Items.Add("waiting for connection");
             Data.appLayer.setForm(this);
-            Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
             sendBtn.Enabled = false;
             richTextBox1.Enabled = false;
         }
@@ -37,7 +36,12 @@ namespace KR_network
                 {
                     Data.appLayer.SendInfoMessage(richTextBox1.Text);
                     messages.Items.Add(richTextBox1.Text);
+                    richTextBox1.Text = "";
                 }
+            }
+            else
+            {
+                info_text.Text = "Соединение не установлено";
             }
         }
 
@@ -50,10 +54,16 @@ namespace KR_network
             }
             else
             {
-                this.Hide();
+                this.Close();
                 parent.Show();
             }
 
+        }
+
+        private void keyDown(object sender, KeyEventArgs e)
+        {
+            if(e.KeyCode == Keys.Enter)
+                sendBtn_Click(sender, e);
         }
     }
 }
