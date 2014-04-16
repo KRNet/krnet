@@ -17,7 +17,7 @@ namespace KR_network
         {
             InitializeComponent();
             this.parent = parent;
-            messages.Items.Add("waiting for connection");
+            writeSystemMessage("Ожидание соединения");
             Data.appLayer.setForm(this);
             sendBtn.Enabled = false;
             richTextBox1.Enabled = false;
@@ -28,6 +28,16 @@ namespace KR_network
             return parent;
         }
 
+        public void writeMessage(string from, string message)
+        {
+            messages.Text += from + " " + DateTime.Now.ToString() + " : " + message + '\n';
+        }
+
+        public void writeSystemMessage(string message)
+        {
+            messages.Text += "Системное сообщение " + DateTime.Now.ToString() + " : " + message + '\n';
+        }
+
         private void sendBtn_Click(object sender, EventArgs e)
         {
             if (Data.physicalLayer.receiverReady())
@@ -35,7 +45,7 @@ namespace KR_network
                 if (richTextBox1.Text != "")
                 {
                     Data.appLayer.SendInfoMessage(richTextBox1.Text);
-                    messages.Items.Add(richTextBox1.Text);
+                    writeMessage(Data.appLayer.getNickname(), richTextBox1.Text);
                     richTextBox1.Text = "";
                 }
             }
@@ -47,23 +57,32 @@ namespace KR_network
 
         private void exitBtn_Click(object sender, EventArgs e)
         {
+            exit();
+        }
+
+        public void exit()
+        {
             if (Data.physicalLayer.receiverReady())
             {
-                messages.Items.Add("Пытаюсь закрыть соединение");
+                writeSystemMessage("Пытаюсь закрыть соединение");
                 Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_DISCONNECT);
             }
             else
             {
-                this.Close();
+                this.Hide();
                 parent.Show();
             }
-
         }
 
         private void keyDown(object sender, KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.Enter)
+            if (e.KeyCode == Keys.Enter)
                 sendBtn_Click(sender, e);
+        }
+
+        private void formClosing(object sender, FormClosingEventArgs e)
+        {
+            exit();
         }
     }
 }

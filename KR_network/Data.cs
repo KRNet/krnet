@@ -25,9 +25,9 @@ namespace KR_network
         static public DLL dll = null;
         static public PhysicalLayer physicalLayer = null;
 
-        static public void makeAppLayer()
+        static public void makeAppLayer(string name )
         {
-            appLayer = new AppLayer(physicalLayer);   
+            appLayer = new AppLayer(physicalLayer, name);   
         }
         
         static public void makePhysicalLayer(string _portName, int _speed, int _parity, int what, double _stopBits)

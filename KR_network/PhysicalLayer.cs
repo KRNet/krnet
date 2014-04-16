@@ -72,11 +72,11 @@ namespace KR_network
         {
             try
             {
+                connectionActive = false;
                 port.Handshake = Handshake.None;
                 port.Open();
                 port.DtrEnable = true;
                 port.RtsEnable = true;
-                connectionActive = false;
                 return true;
             }
             catch (InvalidOperationException) { return false; }
@@ -148,7 +148,14 @@ namespace KR_network
         //Проверяет, свободен ли второй комп
         public bool readyToSend()
         {
-            return (port.BytesToWrite == 0 && receiverReady());           
+            try
+            {
+                return (port.BytesToWrite == 0 && receiverReady());
+            }
+            catch (InvalidOperationException e)
+            {
+                return false;
+            }
         }
 
         //Метод для канального уровня
