@@ -19,18 +19,17 @@ namespace KR_network
 
         public Frame(byte[] data, byte type)
         {
-            this.startByte = 253; //Стартовый байт = 1
-            this.stopByte = 254;
+            this.startByte = Data.STARTByte; //Стартовый байт = 1
+            this.stopByte = Data.STOPByte;
             this.type = type;   //type = 1 для информационных кадров
             this.frameLength = 3;
-            if (this.type == 1)
+            if (this.type == Data.INFOFrame)
             {
                 //Нужно вызывать кодирование сначала
                 this.lengthOfData = (byte)data.Length;
                 this.data = data;
                 this.frameLength += lengthOfData + 1;
             }
-            
         }
 
         public byte[] getData() 
@@ -45,7 +44,7 @@ namespace KR_network
 
         public bool isInformationFrame()
         {
-            return this.type == 1;
+            return this.type == Data.INFOFrame;
         }
 
         public byte[] serialize()
@@ -57,22 +56,40 @@ namespace KR_network
             if (this.data != null)
                 foreach (var b in data) { serialized.Add(b); }
             serialized.Add(stopByte);
-            return serialized.ToArray();
+            return encode(serialized.ToArray());
         }
 
-        static public Frame deserialize(byte[] array)
+        public static Frame deserialize(byte[] array, out byte typeOut)
         {
+            if (array.Count() == 6)//не информационный
+            {
+                typeOut = 0;
+            }
+            else
+            {
+                typeOut = 1;
+            }
+            array = decode(array);
+            if (array == null)
+            {
+                return null;
+            }
             byte type = array.ElementAt(1);
-            List<byte> dataFromArray = new List<byte>();
-            if (type == 1)  //Если кадр информационный
+            //typeOut = type;
+            byte[] dataFromArray = null;
+            if (type == Data.INFOFrame)  //Если кадр информационный
             {
                 byte length = array.ElementAt(2);
-                for (byte i = 3; i < 3 + length; i++)
-                    //Тут декодирование каждого байта
-                    dataFromArray.Add(array[i]);
+
+                dataFromArray = new byte[length];
+                System.Array.Copy(array, 3, dataFromArray, 0, length);
+
             }
-            return new Frame(dataFromArray.ToArray(), type);
+            return new Frame(dataFromArray, type);
+            
+            
         } 
+
 
 
         public void final(byte[] data)
@@ -116,7 +133,6 @@ namespace KR_network
                 int tmp = getLengthOfNumber(porozh) - getLengthOfNumber(iVector);
                 tmp = (tmp < 0) ? 0 : tmp;
                 porozh = porozh >> tmp;
-                Console.WriteLine("a");
             }
             return iVector;
         }
@@ -134,18 +150,28 @@ namespace KR_network
         }
 
 
-        public static void decycle(byte[] b)
+        public static byte decycle(byte[] b)  
         {
             byte[] toConvert = new byte[] { 0, 0, b[0], b[1] };
-            int inputInt = BitConverter.ToInt32(toConvert.Reverse().ToArray(), 0);
+            int inputInt = BitConverter.ToInt32(toConvert.Reverse().ToArray(), 0);      //Ex: 1,0 -> 256 : |00000001 00000000| -> 256
             int syndrom = divide(inputInt, 19);
 
-            Console.WriteLine("syndrom: ", syndrom);
+            //Console.WriteLine("error syndrom: ", syndrom);
+
+            if (syndrom == 0)
+            {
+                int origin = inputInt / 16;     //отсечем последние 4 разряда
+                return (byte)origin;
+            }
+            else
+            {
+                return 255;
+            }
         }
 
         public byte[] encode(byte[] bytes)
         {
-            int length = bytes.Count() * 2;
+            int length = bytes.Count();
             byte[] result = new byte[length * 2];
             for (int i = 0; i < length; i++)
             {
@@ -156,9 +182,33 @@ namespace KR_network
             return result;
         }
 
-        public void decode(byte[] b)
+        public static byte[] decode(byte[] b)
         {
-
+            if (b.Count() % 2 == 0)
+            {
+                List<byte> decodedList = new List<byte>();
+                byte decodedByte = 0;
+                for (int i = 0; i < b.Count(); i+=2)
+                {
+                    decodedByte = decycle(new byte[] { b[i], b[i + 1] });
+                    if (decodedByte == 255)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        decodedList.Add(
+                            decycle(new byte[] { b[i], b[i + 1] })
+                        );
+                    }
+                }
+                return decodedList.ToArray();
+            }
+            else
+            {
+                Console.WriteLine("Count of input bytes is not even!");
+                return null;
+            }
         }
 
         public bool damaged()

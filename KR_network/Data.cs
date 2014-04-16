@@ -9,9 +9,21 @@ namespace KR_network
 {
     static class Data
     {
-        static public AppLayer appLayer;
-        static public DLL dll;
-        static public PhysicalLayer physicalLayer;
+        static public int DLLSendTimeout = 10;
+        static public int DLLSendRepeatTime = 200;
+        static public int DLLReadFromPLTimeout = 100;
+
+        static public byte INFOFrame = 1;
+        static public byte RETFrame = 2;
+        static public byte ACKFrame = 3;
+
+        static public byte STOPByte = 254;
+        static public byte STARTByte = 253;
+
+
+        static public AppLayer appLayer = null;
+        static public DLL dll = null;
+        static public PhysicalLayer physicalLayer = null;
 
         static public void makeAppLayer()
         {

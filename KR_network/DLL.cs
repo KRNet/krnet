@@ -29,8 +29,10 @@ namespace KR_network
         private int countToSend;    //Контролирует очередь кадров на отправку
 
         private PhysicalLayer physicalLayer;
-        private Byte stopByte = 254;
-        private Byte startByte = 253;
+        private Byte stopByte = Data.STOPByte;
+        private Byte startByte = Data.STARTByte;
+
+        private bool canSend;
        
         private List<byte> byteBuffer;
         private ConcurrentQueue<String> stringsBuffer;
@@ -41,7 +43,8 @@ namespace KR_network
         {
             this.physicalLayer = physicalLayer;
             frameWasSended = false;
-            countToSend = 5;    //5 циклов по 200мс
+            canSend = true;
+            countToSend = Data.DLLSendTimeout;    //5 циклов по 200мс
             framesToSend = new ConcurrentQueue<Frame>();
             byteBuffer = new List<byte>();
             stringsBuffer = new ConcurrentQueue<string>();
@@ -63,7 +66,7 @@ namespace KR_network
                     if (received.Length != 0) 
                         process(received);
                 }
-                Thread.Sleep(200);
+                Thread.Sleep(Data.DLLReadFromPLTimeout);
             }
         }
 
@@ -72,20 +75,26 @@ namespace KR_network
         {
             while (true)
             {
-                if (this.physicalLayer.connectionActive)
+                if (this.physicalLayer.connectionActive && this.canSend)
                 {
                     if (frameWasSended)
                         Console.WriteLine("ACK не пришел");
-                    if (!frameWasSended || countToSend == 0)
+                    if (!frameWasSended || countToSend <= 0)
                     {
-                        if (!framesToSend.IsEmpty && physicalLayer.readyToSend())
+                        lock (framesToSend)
                         {
-                            Console.WriteLine("Sending frame");
-                            Frame frame;
-                            this.frameWasSended = true;
-                            framesToSend.TryPeek(out frame);
-                            physicalLayer.sendFrame(frame.serialize());
-                            countToSend = 5;
+                            if (!framesToSend.IsEmpty && physicalLayer.readyToSend())
+                            {
+                                if (countToSend == 0)
+                                    Console.WriteLine("Sending frame because timeout");
+                                else
+                                    Console.WriteLine("Sending next frame");
+                                Frame frame;
+                                this.frameWasSended = true;
+                                framesToSend.TryPeek(out frame);
+                                physicalLayer.sendFrame(frame.serialize());
+                                countToSend = Data.DLLSendTimeout;
+                            }
                         }
                     }
                     else
@@ -94,7 +103,7 @@ namespace KR_network
                     }
   
                 }
-                Thread.Sleep(200);
+                Thread.Sleep(Data.DLLSendRepeatTime);
             }
             
         }
@@ -123,66 +132,107 @@ namespace KR_network
             return new string(chars);
         }
 
-        public Frame makeFrame(String data)
+        public Frame makeInformationFrame(String data)
         {
-            byte type = 1; //Информационный кадр
+            byte type = Data.INFOFrame; //Информационный кадр
             return new Frame(getBytes(data), type); // сделать конструктор
         }
 
         //Метод для прикладного уровня
         public void sendMessage(String data)
         {
-            Frame frame = makeFrame(data);
-            framesToSend.Enqueue(frame);
+            lock (framesToSend)
+            {
+                Frame frame = makeInformationFrame(data);
+                framesToSend.Enqueue(frame);
+            }
         }
 
         public void process(byte[] b)
         {
-            Frame receivedFrame = Frame.deserialize(b);
-            if (receivedFrame.isInformationFrame()){
-                processInfoFrame(receivedFrame);
-            }
-            else
+            byte typeOut = 0;
+            Frame receivedFrame = Frame.deserialize(b, out typeOut);
+            if (receivedFrame == null && typeOut == 1)
             {
-                processControlFrame(receivedFrame);
+                sendRetryFrame();
             }
+            else if(receivedFrame != null)
+            {
+                if (receivedFrame.isInformationFrame())
+                {
+                    processInfoFrame(receivedFrame);
+                }
+                else
+                {
+                    processControlFrame(receivedFrame);
+                }
+            }
+            
         }
 
+        //Обработка системного кадра
         private void processControlFrame(Frame frame)
         {
-            //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false;
-            if (frame.getType() == 2)
+            //Если пришел ACK, то удалять из очереди и ставить флаг wasSended = false
+            if (frame.getType() == Data.ACKFrame)
             {
+                lock (framesToSend)
+                {
+                    Frame pulled = null;
+                    framesToSend.TryDequeue(out pulled);
+                }
                 Console.WriteLine("ACK received");
                 this.frameWasSended = false;
-                Frame pulled = null;
-                framesToSend.TryDequeue(out pulled);
+                
             }
             //Если пришел RET, то ставить флаг wasSended = false;
-            if (frame.getType() == 3)
+            if (frame.getType() == Data.RETFrame)
             {
                 this.frameWasSended = false;
             }
         }
 
+        //Обработка информационного кадра
         private void processInfoFrame(Frame frame)
         {
-            if (!frame.damaged())
-            {
-                Frame ackFrame = new Frame(new byte[0], 2);
+                Frame ackFrame = new Frame(new byte[0], Data.ACKFrame);
+
 
                 Console.WriteLine(getString(frame.getData()));
-                Console.WriteLine("Sending ACK...");
+        
 
+                stopSendingFrames();
+                Console.WriteLine("Sending ACK...");
                 physicalLayer.sendFrame(ackFrame.serialize());
+                continueSendingFrames();
 
                 this.stringsBuffer.Enqueue(getString(frame.getData()));
-            }
-            else
-            {
-                Frame retFrame = new Frame(new byte[0], 3);
+
+        }
+
+        private void sendRetryFrame()
+        {
+                Frame retFrame = new Frame(new byte[0], Data.RETFrame);
+                stopSendingFrames();
+                Console.WriteLine("Sending RET...");
                 physicalLayer.sendFrame(retFrame.serialize());
-            }
+                continueSendingFrames();
+        }
+
+        private void stopSendingFrames()
+        {
+            this.canSend = false;
+            Console.WriteLine("Sending stopped");
+            while (!physicalLayer.readyToSend());
+            Console.WriteLine("Ready to send control frame");
+        }
+
+        private void continueSendingFrames()
+        {
+            Console.WriteLine("Trying start sending");
+            //while (!physicalLayer.readyToSend());
+            this.canSend = true;
+            Console.WriteLine("Sending started");
         }
         
     }
