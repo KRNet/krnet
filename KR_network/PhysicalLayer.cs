@@ -95,7 +95,7 @@ namespace KR_network
                 port.Close();
                 connectionActive = false;
             }
-            catch (InvalidOperationException) { }
+            catch (InvalidOperationException) { Console.WriteLine("fuck you"); }
 
         }
 

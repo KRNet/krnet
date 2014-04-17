@@ -111,11 +111,14 @@ namespace KR_network
         //Метод для прикладного уровня
         public String readFromDLLBuffer()
         {
-            String msg;
             if (stringsBuffer.IsEmpty)
                 return "";
-            stringsBuffer.TryDequeue(out msg);
-            return msg;
+            else
+            {
+                String msg;
+                stringsBuffer.TryDequeue(out msg);
+                return msg;
+            }
         }
 
         static byte[] getBytes(string str)

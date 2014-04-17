@@ -19,14 +19,20 @@ namespace KR_network
         private int countForApproving = 0;
         private bool waitingApprove = false;
         private string nickname;
+        private Thread outputSystem;
+        private Thread outputInfo;
+        private Thread input;
 
         public AppLayer(PhysicalLayer physicalLayer, string nickname)
         {
             this.messageQueue = new ConcurrentQueue<Msg>();
             this.systemQueue = new ConcurrentQueue<Msg>();
-            new Thread(ReadFromDLL).Start();
-            new Thread(SendToDLL).Start();
-            new Thread(SendManageToDLL).Start();
+            input = new Thread(ReadFromDLL);
+            outputInfo = new Thread(SendToDLL);
+            outputSystem = new Thread(SendManageToDLL);
+            input.Start();
+            outputInfo.Start();
+            outputSystem.Start();
             this.countToSend = 0;
             this.nickname = nickname;
         }
@@ -50,6 +56,9 @@ namespace KR_network
             systemQueue = new ConcurrentQueue<Msg>();
             messageQueue = new ConcurrentQueue<Msg>();
             Data.physicalLayer.closeConnection();
+            input.Abort();
+            outputInfo.Abort();
+            outputSystem.Abort();
         }
 
         public void SendInfoMessage(string msg)
@@ -116,9 +125,9 @@ namespace KR_network
             {
                 if (this.waitingApprove && this.countForApproving-- <= 0)
                 {
-                    closeConnection("Закрытие соединения. Проблема с сетью.");
+                    closeConnection("Закрытие соединения. Проблема с сетью.111");
                     this.waitingApprove = false;
-                    this.countForApproving = 15;
+                    //this.countForApproving = 15;
                 }
 
                 if (!this.systemQueue.IsEmpty)
@@ -129,7 +138,7 @@ namespace KR_network
                     if (msg.getManageType() == Msg.ManageType.REQUEST_CONNECT || msg.getManageType() == Msg.ManageType.REQUEST_DISCONNECT)
                     {
                         this.waitingApprove = true;
-                        this.countForApproving = 15;
+                        this.countForApproving = 50;
                     }
                 }
                 Thread.Sleep(200);
@@ -141,7 +150,7 @@ namespace KR_network
             while (true)
             {
                 string message = Data.dll.readFromDLLBuffer();
-                if (!message.Equals(""))
+                if (message != null && !message.Equals(""))
                 {
                     Msg msg = Msg.toMsg(message);
                     switch (msg.getType())
@@ -169,12 +178,16 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.DISCONNECT:
+                                    if (this.waitingApprove == false)
+                                        Console.WriteLine("fuck");
                                     this.waitingApprove = false;
                                     closeConnection("Соединение закрыто");
                                     dialogForm.exit();
                                     break;
 
                                 case Msg.ManageType.CONNECT:
+                                    if (this.waitingApprove == false)
+                                        Console.WriteLine("fuck");
                                     this.waitingApprove = false;
                                     dialogForm.writeSystemMessage("Соединение установлено");
                                     dialogForm.sendBtn.Enabled = true;
