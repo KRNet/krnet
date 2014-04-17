@@ -56,6 +56,7 @@ namespace KR_network
             systemQueue = new ConcurrentQueue<Msg>();
             messageQueue = new ConcurrentQueue<Msg>();
             Data.physicalLayer.closeConnection();
+            Data.dll.closeThreads();
             input.Abort();
             outputInfo.Abort();
             outputSystem.Abort();
@@ -125,9 +126,8 @@ namespace KR_network
             {
                 if (this.waitingApprove && this.countForApproving-- <= 0)
                 {
-                    closeConnection("Закрытие соединения. Проблема с сетью.111");
+                    closeConnection("Закрытие соединения. Проблема с сетью.");
                     this.waitingApprove = false;
-                    //this.countForApproving = 15;
                 }
 
                 if (!this.systemQueue.IsEmpty)

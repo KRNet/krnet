@@ -52,7 +52,12 @@ namespace KR_network
             threadFromPhysicalLayer.Start();
             threadSendFrames = new Thread(sendFrames);
             threadSendFrames.Start();
+        }
 
+        public void closeThreads()
+        {
+            threadFromPhysicalLayer.Abort();
+            threadSendFrames.Abort();
         }
 
         //Служба чтения с физического уровня
