@@ -97,6 +97,9 @@ namespace KR_network
                                 Frame frame;
                                 this.frameWasSended = true;
                                 framesToSend.TryPeek(out frame);
+                                Console.WriteLine();
+                                Console.Write(DateTime.Now.ToString());
+                                Console.WriteLine("КАНАЛЬНЫЙ ПОСЛАЛ НА ФИЗИЧЕСКИЙ");
                                 physicalLayer.sendFrame(frame.serialize());
                                 countToSend = Data.DLLSendTimeout;
                             }
@@ -104,7 +107,10 @@ namespace KR_network
                     }
                     else
                     {
-                        countToSend -= 1; 
+                        if (frameWasSended)
+                        {
+                            countToSend -= 1;
+                        }
                     }
   
                 }
@@ -120,6 +126,9 @@ namespace KR_network
                 return "";
             else
             {
+                Console.WriteLine();
+                Console.Write(DateTime.Now.ToString());
+                Console.WriteLine("ПРИКЛАДНОЙ СЧИТАЛ С КАНАЛЬНОГО");
                 String msg;
                 stringsBuffer.TryDequeue(out msg);
                 return msg;

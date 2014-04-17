@@ -24,6 +24,7 @@ namespace KR_network
         public Boolean connectionActive = false;
         public SerialPort port;
         public int received = 0;
+        private Boolean dllCanRead = false;
         private ConcurrentQueue<byte> dataForDLL;
  
         //Полный конструктор
@@ -72,9 +73,12 @@ namespace KR_network
         {
             try
             {
+
                 connectionActive = false;
                 port.Handshake = Handshake.None;
                 port.Open();
+                port.DiscardInBuffer();
+                port.DiscardOutBuffer();
                 port.DtrEnable = true;
                 port.RtsEnable = true;
                 return true;
@@ -140,6 +144,10 @@ namespace KR_network
         {
             //if (readyToSend())
             //{
+                Console.WriteLine();
+                Console.Write(DateTime.Now.ToString());
+                Console.WriteLine("ФИЗИЧЕСКИЙ ШЛЕТ");
+                
                 port.Write(frame, 0, frame.Length);
                 return frame.Length;
             //}
@@ -152,7 +160,7 @@ namespace KR_network
             {
                 return (port.BytesToWrite == 0 && receiverReady());
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException)
             {
                 return false;
             }
@@ -161,14 +169,22 @@ namespace KR_network
         //Метод для канального уровня
         public byte[] getAllFromDllBuffer()
         {
-            lock (dataForDLL)
-            {
-                byte[] buf = new byte[dataForDLL.Count];
-                dataForDLL.CopyTo(buf, 0);
-                dataForDLL = new ConcurrentQueue<byte>();
-                setReady();
-                return buf;
-            }
+   
+                if (dllCanRead)
+                {
+                    Console.WriteLine();
+                    Console.Write(DateTime.Now.ToString());
+                    Console.WriteLine("КАНАЛЬНЫЙ СЧИТАЛ С ФИЗИЧЕСКОГО");
+                    byte[] buf = new byte[dataForDLL.Count];
+                    dataForDLL.CopyTo(buf, 0);
+                    dataForDLL = new ConcurrentQueue<byte>();
+                    setReady();
+                    dllCanRead = false;
+                    return buf;
+                }
+                else return new byte[0];
+                //89636614725
+            
         }
 
         //Откладываем в буфер на прочтение
@@ -176,13 +192,26 @@ namespace KR_network
         {
             if (connectionActive)
             {
-                lock (dataForDLL)
-                {
-                    setBusy();
-                    foreach (byte bytik in array)
-                        dataForDLL.Enqueue(bytik);
+      
                     
-                }
+                    Console.WriteLine("С физического на канальный");
+                    foreach (byte bytik in array)
+                    {
+                        Console.Write(bytik + " ");
+                        dataForDLL.Enqueue(bytik);
+                        
+                    }
+                    byte [] bytesInQueue = new byte[dataForDLL.Count];
+                    dataForDLL.CopyTo(bytesInQueue, 0);
+                    if ((bytesInQueue[bytesInQueue.Length - 2] == 15 && bytesInQueue[bytesInQueue.Length - 1] == 231))
+                    {
+                        Console.WriteLine();
+                        Console.Write(DateTime.Now.ToString());
+                        Console.WriteLine("НА ФИЗИЧЕСКОМ ПРИНЯТ ПОЛНЫЙ КАДР");
+                        dllCanRead = true;
+                        setBusy();
+                    }  
+                
             }
         }
 
@@ -191,12 +220,12 @@ namespace KR_network
         {
             try
             {
-                if (port.BytesToRead >= port.ReadBufferSize)
-                    setBusy();
+                setBusy();
                 byte[] buffer = new byte[port.BytesToRead];
+                Console.WriteLine("Читаем на физическом " + buffer.Length);
+                
                 port.Read(buffer, 0, buffer.Length);
-                if (port.BytesToRead < port.ReadBufferSize)
-                    setReady();
+                
                 sendToDLL(buffer);
             }
             catch (TimeoutException) { return; }

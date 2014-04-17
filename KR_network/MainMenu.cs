@@ -19,6 +19,7 @@ namespace KR_network
         string _portName;
         public MainMenu()
         {
+
             InitializeComponent();
             foreach (var port in PhysicalLayer.searchPorts())
                 portName.Items.Add(port);

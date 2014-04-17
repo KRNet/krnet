@@ -49,6 +49,7 @@ namespace KR_network
 
         public byte[] serialize()
         {
+            Console.WriteLine("Начато кодирование");
             List<byte> serialized = new List<byte>();
             serialized.Add(startByte);
             serialized.Add(type);
@@ -56,6 +57,7 @@ namespace KR_network
             if (this.data != null)
                 foreach (var b in data) { serialized.Add(b); }
             serialized.Add(stopByte);
+            Console.WriteLine("Послано: " + serialized);
             return encode(serialized.ToArray());
         }
 
@@ -79,11 +81,15 @@ namespace KR_network
             byte[] dataFromArray = null;
             if (type == Data.INFOFrame)  //Если кадр информационный
             {
+                Console.WriteLine("Принято: " + array[0] + " " + array[1] + " " + array[2] + 
+                    " общая длина: " + array.Length);
+                foreach(var bytik in array)
+                {
+                    Console.Write(bytik+ " ");
+                }
                 byte length = array.ElementAt(2);
-
                 dataFromArray = new byte[length];
                 System.Array.Copy(array, 3, dataFromArray, 0, length);
-
             }
             return new Frame(dataFromArray, type);
             

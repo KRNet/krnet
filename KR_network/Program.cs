@@ -26,10 +26,9 @@ namespace KR_network
             System.Windows.Forms.Control.CheckForIllegalCrossThreadCalls = false;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainMenu()); 
-            
-
-        }
-        
+            Application.Run(new MainMenu());
+            //byte[] a = Frame.cycle(254);
+            //Console.WriteLine(a[0] + " " + a[1]);
+        }   
     }
 }

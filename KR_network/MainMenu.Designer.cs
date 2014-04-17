@@ -73,6 +73,7 @@
             // nickname
             // 
             this.nickname.Location = new System.Drawing.Point(77, 78);
+            this.nickname.MaxLength = 10;
             this.nickname.Name = "nickname";
             this.nickname.Size = new System.Drawing.Size(198, 22);
             this.nickname.TabIndex = 1;

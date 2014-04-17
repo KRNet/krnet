@@ -13,11 +13,11 @@ namespace KR_network
     {
         private ConcurrentQueue<Msg> messageQueue;
         private ConcurrentQueue<Msg> systemQueue;
-        private int countToSend;
         Dialog dialogForm;
-        private int triesInfo = 0;
         private int countForApproving = 0;
+        private int countForACK = 0;
         private bool waitingApprove = false;
+        private bool waitingACK = false;
         private string nickname;
         private Thread outputSystem;
         private Thread outputInfo;
@@ -33,7 +33,6 @@ namespace KR_network
             input.Start();
             outputInfo.Start();
             outputSystem.Start();
-            this.countToSend = 0;
             this.nickname = nickname;
         }
 
@@ -64,6 +63,9 @@ namespace KR_network
 
         public void SendInfoMessage(string msg)
         {
+            Console.WriteLine();
+            Console.Write(DateTime.Now.ToString());
+            Console.WriteLine("ПРИКЛАДНОЙ ДОБАВИЛ В ОЧЕРЕДЬ");
             Msg message = new Msg(this.nickname, msg);
             messageQueue.Enqueue(message);
         }
@@ -78,43 +80,40 @@ namespace KR_network
         {
             Msg msg;
             messageQueue.TryDequeue(out msg);
-            this.countToSend = 0;
-            this.triesInfo = 0;
+            this.countForACK = 50;
+            this.waitingACK = false; 
         }
 
         public void SendToDLL()
         {
-            const int MAX_TRIES = 2;
-            Msg previousMsg = null;
-            bool firstTime = true;
             while (true)
             {
-                if (countToSend-- <= 0)
+                if (!messageQueue.IsEmpty && !waitingACK)
                 {
-                    if (!this.messageQueue.IsEmpty)
+                    Msg msg;
+                    messageQueue.TryPeek(out msg);
+                    Console.WriteLine();
+                    Console.Write(DateTime.Now.ToString());
+                    Console.WriteLine("ПРИКЛАДНОЙ ПОСЛАЛ НА КАНАЛЬНЫЙ");
+                    Data.dll.sendMessage(msg.toString());
+                    waitingACK = true;
+                    countForACK = 50;
+                    //dialogForm.info_text.Text = "Выполняется передача";
+                }
+                else
+                {
+                    if (waitingACK)
                     {
-                        Msg msg;
-                        messageQueue.TryPeek(out msg);
 
-                        if (firstTime)
-                        {
-                            previousMsg = msg;
-                            firstTime = false;
-                        }
-                        Data.dll.sendMessage(msg.toString());
-                        dialogForm.info_text.Text = "Выполняется передача";
-                        if (previousMsg != null && previousMsg.Equals(msg))
-                            triesInfo++;
-                        if (triesInfo == MAX_TRIES)
+                        countForACK--;
+                        if (countForACK <= 0)
                         {
                             closeConnection("Закрытие соединения. Проблема с сетью.");
+                            waitingACK = false;
+                            countForACK = 50;
                         }
-                        previousMsg = msg;
                     }
-                    else
-                        if (!firstTime)
-                            dialogForm.info_text.Text = "Все сообщения отправлены";
-                    countToSend = 10;
+
                 }
                 Thread.Sleep(100);
             }
@@ -141,7 +140,7 @@ namespace KR_network
                         this.countForApproving = 50;
                     }
                 }
-                Thread.Sleep(200);
+                Thread.Sleep(100);
             }
         }
 
@@ -156,6 +155,9 @@ namespace KR_network
                     switch (msg.getType())
                     {
                         case Msg.Types.info:
+                            Console.WriteLine();
+                            Console.Write(DateTime.Now.ToString());
+                            Console.WriteLine("ПРИКЛАДНОЙ ПОЛУЧИЛ");
                             dialogForm.writeMessage(msg.getNickname(), msg.getMessage());
                             SendManageMessage(Msg.ManageType.ACK);
                             break;
@@ -178,20 +180,22 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.DISCONNECT:
-                                    if (this.waitingApprove == false)
-                                        Console.WriteLine("fuck");
-                                    this.waitingApprove = false;
-                                    closeConnection("Соединение закрыто");
-                                    dialogForm.exit();
+                                    if (this.waitingApprove)
+                                    {
+                                        this.waitingApprove = false;
+                                        closeConnection("Соединение закрыто");
+                                        dialogForm.exit();
+                                    }
                                     break;
 
                                 case Msg.ManageType.CONNECT:
-                                    if (this.waitingApprove == false)
-                                        Console.WriteLine("fuck");
-                                    this.waitingApprove = false;
-                                    dialogForm.writeSystemMessage("Соединение установлено");
-                                    dialogForm.sendBtn.Enabled = true;
-                                    dialogForm.richTextBox1.Enabled = true;
+                                    if (this.waitingApprove)
+                                    {
+                                        this.waitingApprove = false;
+                                        dialogForm.writeSystemMessage("Соединение установлено");
+                                        dialogForm.sendBtn.Enabled = true;
+                                        dialogForm.richTextBox1.Enabled = true;
+                                    }
                                     break;
                             }
                             break;
