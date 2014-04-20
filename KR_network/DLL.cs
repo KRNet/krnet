@@ -212,8 +212,11 @@ namespace KR_network
 
         private void sendRetryFrame()
         {
+
                 Frame retFrame = new Frame(new byte[0], Data.RETFrame);
+                stopSendingFrames();
                 physicalLayer.sendFrame(retFrame.serialize());
+                continueSendingFrames();
         }
 
         private void stopSendingFrames()

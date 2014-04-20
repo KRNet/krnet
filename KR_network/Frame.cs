@@ -84,18 +84,6 @@ namespace KR_network
             
         } 
 
-
-
-        public void final(byte[] data)
-        {
-
-        }
-
-       /* public byte[] getFinal() //FIXED
-        {
-          
-        }
-        */
         public static byte[] cycle(byte b)
         {
             int iVector = Convert.ToInt32(b);

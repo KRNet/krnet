@@ -51,7 +51,7 @@ namespace KR_network
             //{
                 if (Data.physicalLayer == null)
                 {
-                    Data.makePhysicalLayer("COM2", 9600, 1, 8, 1);
+                    Data.makePhysicalLayer("COM1", 9600, 1, 8, 1);
                     Data.makeDLL();
                     Data.makeAppLayer();
                 }
