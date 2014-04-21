@@ -13,17 +13,27 @@ namespace KR_network
     {
         private ConcurrentQueue<Msg> messageQueue;
         private ConcurrentQueue<Msg> systemQueue;
-        private int countToSend;
         Dialog dialogForm;
-        
-        public AppLayer(PhysicalLayer physicalLayer)
+        private int countForApproving = 0;
+        private int countForACK = 0;
+        private bool waitingApprove = false;
+        private bool waitingACK = false;
+        private string nickname;
+        private Thread outputSystem;
+        private Thread outputInfo;
+        private Thread input;
+
+        public AppLayer(PhysicalLayer physicalLayer, string nickname)
         {
             this.messageQueue = new ConcurrentQueue<Msg>();
             this.systemQueue = new ConcurrentQueue<Msg>();
-            new Thread(ReadFromDLL).Start();
-            new Thread(SendToDLL).Start();
-            new Thread(SendManageToDLL).Start();
-            this.countToSend = 0;
+            input = new Thread(ReadFromDLL);
+            outputInfo = new Thread(SendToDLL);
+            outputSystem = new Thread(SendManageToDLL);
+            input.Start();
+            outputInfo.Start();
+            outputSystem.Start();
+            this.nickname = nickname;
         }
 
         public void setForm(Dialog dialog)
@@ -31,20 +41,32 @@ namespace KR_network
             this.dialogForm = dialog;
         }
 
+        public string getNickname()
+        {
+            return this.nickname;
+        }
+
         public void closeConnection(String message)
         {
-            dialogForm.messages.Items.Add(message);
+            dialogForm.writeSystemMessage(message);
             dialogForm.sendBtn.Enabled = false;
             dialogForm.richTextBox1.Enabled = false;
             dialogForm.info_text.Text = "Соединение закрыто";
             systemQueue = new ConcurrentQueue<Msg>();
             messageQueue = new ConcurrentQueue<Msg>();
             Data.physicalLayer.closeConnection();
+            Data.dll.closeThreads();
+            input.Abort();
+            outputInfo.Abort();
+            outputSystem.Abort();
         }
 
         public void SendInfoMessage(string msg)
         {
-            Msg message = new Msg(msg);
+            Console.WriteLine();
+            Console.Write(DateTime.Now.ToString());
+            Console.WriteLine("ПРИКЛАДНОЙ ДОБАВИЛ В ОЧЕРЕДЬ");
+            Msg message = new Msg(this.nickname, msg);
             messageQueue.Enqueue(message);
         }
 
@@ -58,43 +80,46 @@ namespace KR_network
         {
             Msg msg;
             messageQueue.TryDequeue(out msg);
-            this.countToSend = 0;
+            this.countForACK = 50;
+            this.waitingACK = false; 
         }
 
         public void SendToDLL()
         {
-            const int MAX_TRIES = 2;
-            Msg previousMsg = null;
-            int tries = 0;
-            bool firstTime = true;
             while (true)
             {
-                if (countToSend-- <= 0)
+                if (!Data.dll.getLinkStatus())
                 {
-                    if (!this.messageQueue.IsEmpty)
+                    closeConnection("Логическое соединение разорвано.");
+                    return;
+                }
+                
+                if (!messageQueue.IsEmpty && !waitingACK)
+                {
+                    Msg msg;
+                    messageQueue.TryPeek(out msg);
+                    Console.WriteLine();
+                    Console.Write(DateTime.Now.ToString());
+                    Console.WriteLine("ПРИКЛАДНОЙ ПОСЛАЛ НА КАНАЛЬНЫЙ");
+                    Data.dll.sendMessage(msg.toString());
+                    waitingACK = true;
+                    countForACK = 50;
+                    //dialogForm.info_text.Text = "Выполняется передача";
+                }
+                else
+                {
+                    if (waitingACK)
                     {
-                        Msg msg;
-                        messageQueue.TryPeek(out msg);
-                        
-                        if (firstTime)
-                        {
-                            previousMsg = msg;
-                            firstTime = false;
-                        }
-                        Data.dll.sendMessage(msg.toString());
-                        dialogForm.info_text.Text = "Выполняется передача";
-                        if (previousMsg != null && previousMsg.Equals(msg))
-                            tries++;
-                        if (tries == MAX_TRIES)
+
+                        countForACK--;
+                        if (countForACK <= 0)
                         {
                             closeConnection("Закрытие соединения. Проблема с сетью.");
+                            waitingACK = false;
+                            countForACK = 50;
                         }
-                        previousMsg = msg;
                     }
-                    else
-                        if (!firstTime)
-                            dialogForm.info_text.Text = "Все сообщения отправлены";
-                    countToSend = 10;                  
+
                 }
                 Thread.Sleep(100);
             }
@@ -103,32 +128,44 @@ namespace KR_network
         public void SendManageToDLL()
         {
             while (true)
-            {   
-                if (!systemQueue.IsEmpty)
+            {
+                
+                if (this.waitingApprove && this.countForApproving-- <= 0)
                 {
-                    Msg msg;
-                    while(!this.systemQueue.TryDequeue(out msg));
+                    closeConnection("Закрытие соединения. Проблема с сетью.");
+                    this.waitingApprove = false;
+                }
+
+                if (!this.systemQueue.IsEmpty)
+                {
+                    Msg msg = null;
+                    systemQueue.TryDequeue(out msg);
                     Data.dll.sendMessage(msg.toString());
-                    dialogForm.messages.Items.Add("sended " + msg.toString());
+                    if (msg.getManageType() == Msg.ManageType.REQUEST_CONNECT || msg.getManageType() == Msg.ManageType.REQUEST_DISCONNECT)
+                    {
+                        this.waitingApprove = true;
+                        this.countForApproving = 50;
+                    }
                 }
                 Thread.Sleep(100);
             }
         }
-        
+
         public void ReadFromDLL()
         {
             while (true)
             {
                 string message = Data.dll.readFromDLLBuffer();
-                if (!message.Equals(""))
+                if (message != null && !message.Equals(""))
                 {
                     Msg msg = Msg.toMsg(message);
-                    dialogForm.messages.Items.Add("recieved  " + msg.toString());
-             
                     switch (msg.getType())
                     {
                         case Msg.Types.info:
-                            dialogForm.messages.Items.Add(msg.getMessage());
+                            Console.WriteLine();
+                            Console.Write(DateTime.Now.ToString());
+                            Console.WriteLine("ПРИКЛАДНОЙ ПОЛУЧИЛ");
+                            dialogForm.writeMessage(msg.getNickname(), msg.getMessage());
                             SendManageMessage(Msg.ManageType.ACK);
                             break;
                         case Msg.Types.manage:
@@ -139,7 +176,7 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.REQUEST_DISCONNECT:
-                                    Data.dll.sendMessage((new Msg(Msg.ManageType.DISCONNECT)).toString());// сразу послать, потом закрыть порт
+                                    SendManageMessage(Msg.ManageType.DISCONNECT);
                                     Thread.Sleep(1500);//на всякий
                                     closeConnection("Собеседник закрыл соединение");
                                     dialogForm.info_text.Text = "Соединение не установлено";
@@ -150,15 +187,22 @@ namespace KR_network
                                     break;
 
                                 case Msg.ManageType.DISCONNECT:
-                                    closeConnection("Соединение закрыто");
-                                    dialogForm.Close();
-                                    dialogForm.getParent().Show();
+                                    if (this.waitingApprove)
+                                    {
+                                        this.waitingApprove = false;
+                                        closeConnection("Соединение закрыто");
+                                        dialogForm.exit();
+                                    }
                                     break;
 
                                 case Msg.ManageType.CONNECT:
-                                    dialogForm.messages.Items.Add("Соединение установлено");
-                                    dialogForm.sendBtn.Enabled = true;
-                                    dialogForm.richTextBox1.Enabled = true;
+                                    if (this.waitingApprove)
+                                    {
+                                        this.waitingApprove = false;
+                                        dialogForm.writeSystemMessage("Соединение установлено");
+                                        dialogForm.sendBtn.Enabled = true;
+                                        dialogForm.richTextBox1.Enabled = true;
+                                    }
                                     break;
                             }
                             break;

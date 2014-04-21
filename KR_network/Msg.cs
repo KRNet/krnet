@@ -17,12 +17,13 @@ namespace KR_network
         private Types type;
         private ManageType manageType;
         private string message;
-        
+        private string nickname;
 
-        public Msg(string message)
+        public Msg(string nickname, string message)
         {
             this.type = Types.info;
             this.message = message;
+            this.nickname = nickname;
         }
 
         public Msg(ManageType manageType)
@@ -47,12 +48,17 @@ namespace KR_network
             return this.manageType;
         }
 
+        public string getNickname()
+        {
+            return this.nickname;
+        }
+
         public string toString()
         {
             switch (this.type)
             {
                 case Types.info:
-                    return this.message + "\r\n" + this.type;
+                    return this.nickname + "\r\n" + this.type + "\r\n" + this.message;
                 default:
                     return this.manageType + "\r\n" + this.type;
             }            
@@ -64,7 +70,7 @@ namespace KR_network
                 StringSplitOptions.RemoveEmptyEntries);
             Types type = (Types)Enum.Parse(typeof(Types), array[1]);
             if (type == Types.info)
-                return new Msg(array[0]);
+                return new Msg(array[0], array[2]);
             else
                 return new Msg((ManageType)Enum.Parse(typeof(ManageType),array[0]));
         }  

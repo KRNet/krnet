@@ -22,6 +22,7 @@ namespace KR_network
     {
         private Thread threadFromPhysicalLayer;
         private Thread threadSendFrames;
+        private Thread threadSendLinkFrame;
 
         private ConcurrentQueue<Frame> framesToSend;
 
@@ -33,26 +34,39 @@ namespace KR_network
         private Byte startByte = Data.STARTByte;
 
         private bool canSend;
-       
-        private List<byte> byteBuffer;
-        private ConcurrentQueue<String> stringsBuffer;
+        private bool linkStatus;
+        private int linkFramesSended;
 
-        private List<byte> chunk = new List<byte>();
+        private ConcurrentQueue<String> stringsBuffer;
 
         public DLL(PhysicalLayer physicalLayer)
         {
             this.physicalLayer = physicalLayer;
             frameWasSended = false;
+            linkStatus = true;
+            linkFramesSended = 0;
             canSend = true;
             countToSend = Data.DLLSendTimeout;    //5 циклов по 200мс
             framesToSend = new ConcurrentQueue<Frame>();
-            byteBuffer = new List<byte>();
             stringsBuffer = new ConcurrentQueue<string>();
             threadFromPhysicalLayer = new Thread(readFromPhLayer);
             threadFromPhysicalLayer.Start();
             threadSendFrames = new Thread(sendFrames);
             threadSendFrames.Start();
+            threadSendLinkFrame = new Thread(sendLinkFrame);
+            threadSendLinkFrame.Start();
+        }
 
+        public bool getLinkStatus()
+        {
+            return linkStatus;
+        }
+
+        public void closeThreads()
+        {
+            threadFromPhysicalLayer.Abort();
+            threadSendFrames.Abort();
+            threadSendLinkFrame.Abort();
         }
 
         //Служба чтения с физического уровня
@@ -92,6 +106,9 @@ namespace KR_network
                                 Frame frame;
                                 this.frameWasSended = true;
                                 framesToSend.TryPeek(out frame);
+                                Console.WriteLine();
+                                Console.Write(DateTime.Now.ToString());
+                                Console.WriteLine("КАНАЛЬНЫЙ ПОСЛАЛ НА ФИЗИЧЕСКИЙ");
                                 physicalLayer.sendFrame(frame.serialize());
                                 countToSend = Data.DLLSendTimeout;
                             }
@@ -99,7 +116,10 @@ namespace KR_network
                     }
                     else
                     {
-                        countToSend -= 1; 
+                        if (frameWasSended)
+                        {
+                            countToSend -= 1;
+                        }
                     }
   
                 }
@@ -108,14 +128,48 @@ namespace KR_network
             
         }
 
+        private void sendLinkFrame()
+        {
+            while (true)
+            {
+                if (physicalLayer.connectionActive)
+                {
+                    if (linkFramesSended >= 3)
+                    {
+                        linkStatus = false;
+                        return;
+                    }
+                    else
+                    {
+                        Frame LinkFrame = new Frame(new byte[0], Data.LINKFrame);
+                        stopSendingFrames();
+                        Console.WriteLine("Sending LINK...");
+                        physicalLayer.sendFrame(LinkFrame.serialize());
+                        continueSendingFrames();
+
+                        linkFramesSended += 1;
+                    }
+                    
+                    
+                }
+                Thread.Sleep(Data.LinkFrameTimeout);
+            }
+        }
+
         //Метод для прикладного уровня
         public String readFromDLLBuffer()
         {
-            String msg;
             if (stringsBuffer.IsEmpty)
                 return "";
-            stringsBuffer.TryDequeue(out msg);
-            return msg;
+            else
+            {
+                Console.WriteLine();
+                Console.Write(DateTime.Now.ToString());
+                Console.WriteLine("ПРИКЛАДНОЙ СЧИТАЛ С КАНАЛЬНОГО");
+                String msg;
+                stringsBuffer.TryDequeue(out msg);
+                return msg;
+            }
         }
 
         static byte[] getBytes(string str)
@@ -156,7 +210,7 @@ namespace KR_network
             {
                 sendRetryFrame();
             }
-            else
+            else if(receivedFrame != null)
             {
                 if (receivedFrame.isInformationFrame())
                 {
@@ -190,6 +244,17 @@ namespace KR_network
             {
                 this.frameWasSended = false;
             }
+
+            if (frame.getType() == Data.LINKFrame)
+            {
+                sendLinkAckFrame();
+            }
+
+            if (frame.getType() == Data.LINK_ACKFrame)
+            {
+                linkStatus = true;
+                linkFramesSended = 0;
+            }
         }
 
         //Обработка информационного кадра
@@ -212,11 +277,20 @@ namespace KR_network
 
         private void sendRetryFrame()
         {
+            Frame retFrame = new Frame(new byte[0], Data.RETFrame);
+            stopSendingFrames();
+            Console.WriteLine("Sending RET...");
+            physicalLayer.sendFrame(retFrame.serialize());
+            continueSendingFrames();
+        }
 
-                Frame retFrame = new Frame(new byte[0], Data.RETFrame);
-                stopSendingFrames();
-                physicalLayer.sendFrame(retFrame.serialize());
-                continueSendingFrames();
+        private void sendLinkAckFrame()
+        {
+            Frame LinkACKFrame = new Frame(new byte[0], Data.LINK_ACKFrame);
+            stopSendingFrames();
+            Console.WriteLine("Sending LINK_ACK...");
+            physicalLayer.sendFrame(LinkACKFrame.serialize());
+            continueSendingFrames();
         }
 
         private void stopSendingFrames()

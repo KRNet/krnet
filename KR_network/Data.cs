@@ -13,9 +13,13 @@ namespace KR_network
         static public int DLLSendRepeatTime = 200;
         static public int DLLReadFromPLTimeout = 100;
 
+        static public int LinkFrameTimeout = 2000;
+
         static public byte INFOFrame = 1;
         static public byte RETFrame = 2;
         static public byte ACKFrame = 3;
+        static public byte LINKFrame = 4;
+        static public byte LINK_ACKFrame = 5;
 
         static public byte STOPByte = 254;
         static public byte STARTByte = 253;
@@ -25,9 +29,9 @@ namespace KR_network
         static public DLL dll = null;
         static public PhysicalLayer physicalLayer = null;
 
-        static public void makeAppLayer()
+        static public void makeAppLayer(string name )
         {
-            appLayer = new AppLayer(physicalLayer);   
+            appLayer = new AppLayer(physicalLayer, name);   
         }
         
         static public void makePhysicalLayer(string _portName, int _speed, int _parity, int what, double _stopBits)

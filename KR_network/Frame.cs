@@ -49,6 +49,7 @@ namespace KR_network
 
         public byte[] serialize()
         {
+            Console.WriteLine("Начато кодирование");
             List<byte> serialized = new List<byte>();
             serialized.Add(startByte);
             serialized.Add(type);
@@ -56,31 +57,42 @@ namespace KR_network
             if (this.data != null)
                 foreach (var b in data) { serialized.Add(b); }
             serialized.Add(stopByte);
+            Console.WriteLine("Послано: " + serialized);
             return encode(serialized.ToArray());
         }
 
         public static Frame deserialize(byte[] array, out byte typeOut)
         {
-            byte type = array.ElementAt(1);
-            typeOut = type;
-            byte[] dataFromArray = null;
-            if (type == Data.INFOFrame)  //Если кадр информационный
+            if (array.Count() == 6)//не информационный
             {
-                byte length = array.ElementAt(2);
-                
-                dataFromArray = new byte[length];
-                System.Array.Copy(array, 3, dataFromArray, 0, length);
-                
-                dataFromArray = decode(dataFromArray);
-            }
-            if (dataFromArray == null)
-            {
-                return null;
+                typeOut = 0;
             }
             else
             {
-                return new Frame(dataFromArray.ToArray(), type);
+                typeOut = 1;
             }
+            array = decode(array);
+            if (array == null)
+            {
+                return null;
+            }
+            byte type = array.ElementAt(1);
+            //typeOut = type;
+            byte[] dataFromArray = null;
+            if (type == Data.INFOFrame)  //Если кадр информационный
+            {
+                Console.WriteLine("Принято: " + array[0] + " " + array[1] + " " + array[2] + 
+                    " общая длина: " + array.Length);
+                foreach(var bytik in array)
+                {
+                    Console.Write(bytik+ " ");
+                }
+                byte length = array.ElementAt(2);
+                dataFromArray = new byte[length];
+                System.Array.Copy(array, 3, dataFromArray, 0, length);
+            }
+            return new Frame(dataFromArray, type);
+            
             
         } 
 
@@ -115,7 +127,6 @@ namespace KR_network
                 int tmp = getLengthOfNumber(porozh) - getLengthOfNumber(iVector);
                 tmp = (tmp < 0) ? 0 : tmp;
                 porozh = porozh >> tmp;
-                Console.WriteLine("a");
             }
             return iVector;
         }
@@ -154,7 +165,7 @@ namespace KR_network
 
         public byte[] encode(byte[] bytes)
         {
-            int length = bytes.Count() * 2;
+            int length = bytes.Count();
             byte[] result = new byte[length * 2];
             for (int i = 0; i < length; i++)
             {
@@ -171,7 +182,7 @@ namespace KR_network
             {
                 List<byte> decodedList = new List<byte>();
                 byte decodedByte = 0;
-                for (int i = 0; i < b.Count() / 2; i+=2)
+                for (int i = 0; i < b.Count(); i+=2)
                 {
                     decodedByte = decycle(new byte[] { b[i], b[i + 1] });
                     if (decodedByte == 255)

@@ -12,13 +12,14 @@ namespace KR_network
 {
     public partial class MainMenu : Form
     {
-        string _speed = "9600";
-        int _parity = 1;
-        string _stopBits = "0";
-        string _nickname = "aa";
-        string _portName= "COM10";
+        string _speed;
+        int _parity;
+        string _stopBits;
+        string _nickname;
+        string _portName;
         public MainMenu()
         {
+
             InitializeComponent();
             foreach (var port in PhysicalLayer.searchPorts())
                 portName.Items.Add(port);
@@ -49,12 +50,10 @@ namespace KR_network
             //}
             //else
             //{
-                if (Data.physicalLayer == null)
-                {
-                    Data.makePhysicalLayer("COM1", 9600, 1, 8, 1);
-                    Data.makeDLL();
-                    Data.makeAppLayer();
-                }
+                Data.makePhysicalLayer(_portName, 9600, 1, 8, 1);
+                Data.makeDLL();
+                Data.makeAppLayer(_nickname);
+
                 Waiting waiting = new Waiting();
                 waiting.Show();
                 this.Hide();
