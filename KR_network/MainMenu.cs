@@ -50,7 +50,7 @@ namespace KR_network
             }
             else
             {
-                new Thread(setInfoStatus).Start();
+                MessageBox.Show("Установление физического соединения");
                 Data.makePhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
                 Data.makeDLL();
                 Data.makeAppLayer(_nickname);
