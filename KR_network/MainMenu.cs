@@ -5,7 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace KR_network
@@ -44,27 +44,29 @@ namespace KR_network
         private void connectBtn_Click(object sender, EventArgs e)
         {
             _nickname = nickname.Text;
-            //if (_nickname == "" || _speed == null || _portName == null || _stopBits == null)
-            //{
-              //  MessageBox.Show("Wrong parameters");
-            //}
-            //else
-            //{
-                Data.makePhysicalLayer(_portName, 9600, 1, 8, 1);
+            if (_nickname == "" || _speed == null || _portName == null || _stopBits == null)
+            {
+                MessageBox.Show("Wrong parameters");
+            }
+            else
+            {
+                new Thread(setInfoStatus).Start();
+                Data.makePhysicalLayer(_portName, int.Parse(_speed), _parity, 8, double.Parse(_stopBits));
                 Data.makeDLL();
                 Data.makeAppLayer(_nickname);
-
-                Waiting waiting = new Waiting();
-                waiting.Show();
-                this.Hide();
                 Dialog dialog = new Dialog(this);
                 Data.physicalLayer.makeActive();
                 while (!Data.physicalLayer.receiverReady());
-                waiting.Close();
+                this.info_text.Text = "Соединение установлено";
                 this.Hide();
                 dialog.Show();
                 Data.appLayer.SendManageMessage(Msg.ManageType.REQUEST_CONNECT);
-            //}
+            }
+        }
+
+        private void setInfoStatus()
+        {
+            this.info_text.Text = "Установка соединения";
         }
 
         private void portName_SelectedIndexChanged(object sender, EventArgs e)
@@ -85,6 +87,11 @@ namespace KR_network
         private void parity_SelectedIndexChanged(object sender, EventArgs e)
         {
             _parity = parity.SelectedIndex;
+        }
+
+        private void visibleChange(object sender, EventArgs e)
+        {
+            this.info_text.Text = "Соединение не установлено";
         }
     }
 }

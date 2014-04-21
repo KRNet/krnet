@@ -35,8 +35,8 @@ namespace KR_network
                 port = new SerialPort(portName, baudRate, parityConvert(parity),
                     dataBits, stopBitsConvert(stopBits));
                 makeActive();
-                port.ReadTimeout = 500;
-                port.WriteTimeout = 500;
+                port.ReadTimeout = 3000;
+                port.WriteTimeout = 3000;
                 port.DataReceived += new SerialDataReceivedEventHandler(DataReceived);
                 dataForDLL = new ConcurrentQueue<byte>();
 
@@ -145,8 +145,7 @@ namespace KR_network
             //{
                 Console.WriteLine();
                 Console.Write(DateTime.Now.ToString());
-                Console.WriteLine("ФИЗИЧЕСКИЙ ШЛЕТ");
-                
+                Console.WriteLine("ФИЗИЧЕСКИЙ ШЛЕТ"); 
                 port.Write(frame, 0, frame.Length);
                 return frame.Length;
             //}

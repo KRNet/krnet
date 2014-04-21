@@ -140,14 +140,19 @@ namespace KR_network
                         return;
                     }
                     else
-                    {
-                        Frame LinkFrame = new Frame(new byte[0], Data.LINKFrame);
-                        stopSendingFrames();
-                        Console.WriteLine("Sending LINK...");
-                        physicalLayer.sendFrame(LinkFrame.serialize());
-                        continueSendingFrames();
+                    { 
+                        if (canSend)
+                        {
+                            Frame LinkFrame = new Frame(new byte[0], Data.LINKFrame);
+                       
+                            stopSendingFrames();
+                            Console.WriteLine("Sending LINK...");
+                            physicalLayer.sendFrame(LinkFrame.serialize());
+                            continueSendingFrames();
 
-                        linkFramesSended += 1;
+                            linkFramesSended += 1;
+                        }
+                        
                     }
                     
                     
@@ -287,6 +292,7 @@ namespace KR_network
         private void sendLinkAckFrame()
         {
             Frame LinkACKFrame = new Frame(new byte[0], Data.LINK_ACKFrame);
+            while (!canSend) { }
             stopSendingFrames();
             Console.WriteLine("Sending LINK_ACK...");
             physicalLayer.sendFrame(LinkACKFrame.serialize());
