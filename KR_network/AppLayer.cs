@@ -51,7 +51,7 @@ namespace KR_network
             dialogForm.writeSystemMessage(message);
             dialogForm.sendBtn.Enabled = false;
             dialogForm.richTextBox1.Enabled = false;
-            dialogForm.info_text.Text = "Соединение закрыто";
+            setInfoText("Соединение закрыто");
             systemQueue = new ConcurrentQueue<Msg>();
             messageQueue = new ConcurrentQueue<Msg>();
             Data.physicalLayer.closeConnection();
@@ -59,6 +59,12 @@ namespace KR_network
             input.Abort();
             outputInfo.Abort();
             outputSystem.Abort();
+        }
+
+        private void setInfoText(string str)
+        {
+            if (dialogForm != null)
+                dialogForm.info_text.Text = str;
         }
 
         public void SendInfoMessage(string msg)
@@ -98,13 +104,13 @@ namespace KR_network
                     Data.dll.sendMessage(msg.toString());
                     waitingACK = true;
                     countForACK = 50;
-                    //dialogForm.info_text.Text = "Выполняется передача";
+                    setInfoText("Выполняется передача");
                 }
                 else
                 {
                     if (waitingACK)
                     {
-
+                        setInfoText("Ожидание подтверждения");
                         countForACK--;
                         if (countForACK <= 0)
                         {
@@ -112,6 +118,11 @@ namespace KR_network
                             waitingACK = false;
                             countForACK = 50;
                         }
+
+                    }
+                    else
+                    {
+                        setInfoText("Сообщения переданы");
                     }
 
                 }
@@ -172,7 +183,7 @@ namespace KR_network
                                     SendManageMessage(Msg.ManageType.DISCONNECT);
                                     Thread.Sleep(1500);//на всякий
                                     closeConnection("Собеседник закрыл соединение");
-                                    dialogForm.info_text.Text = "Соединение не установлено";
+                                    setInfoText("Соединение не установлено");
                                     break;
 
                                 case Msg.ManageType.ACK:

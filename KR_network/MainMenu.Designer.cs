@@ -43,6 +43,8 @@
             this.portName = new System.Windows.Forms.ComboBox();
             this.connectBtn = new System.Windows.Forms.Button();
             this.exitBtn = new System.Windows.Forms.Button();
+            this.info_text = new System.Windows.Forms.TextBox();
+            this.info = new System.Windows.Forms.Label();
             this.tabs.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -179,7 +181,7 @@
             // 
             // connectBtn
             // 
-            this.connectBtn.Location = new System.Drawing.Point(153, 390);
+            this.connectBtn.Location = new System.Drawing.Point(153, 434);
             this.connectBtn.Name = "connectBtn";
             this.connectBtn.Size = new System.Drawing.Size(174, 70);
             this.connectBtn.TabIndex = 1;
@@ -189,7 +191,7 @@
             // 
             // exitBtn
             // 
-            this.exitBtn.Location = new System.Drawing.Point(13, 390);
+            this.exitBtn.Location = new System.Drawing.Point(13, 434);
             this.exitBtn.Name = "exitBtn";
             this.exitBtn.Size = new System.Drawing.Size(129, 70);
             this.exitBtn.TabIndex = 2;
@@ -197,11 +199,31 @@
             this.exitBtn.UseVisualStyleBackColor = true;
             this.exitBtn.Click += new System.EventHandler(this.exitBtn_Click);
             // 
+            // info_text
+            // 
+            this.info_text.Enabled = false;
+            this.info_text.Location = new System.Drawing.Point(99, 384);
+            this.info_text.Name = "info_text";
+            this.info_text.Size = new System.Drawing.Size(224, 22);
+            this.info_text.TabIndex = 9;
+            this.info_text.Text = "Соединение не установлено";
+            // 
+            // info
+            // 
+            this.info.AutoSize = true;
+            this.info.Location = new System.Drawing.Point(14, 387);
+            this.info.Name = "info";
+            this.info.Size = new System.Drawing.Size(79, 17);
+            this.info.TabIndex = 8;
+            this.info.Text = "Состояние";
+            // 
             // MainMenu
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(345, 471);
+            this.ClientSize = new System.Drawing.Size(343, 517);
+            this.Controls.Add(this.info_text);
+            this.Controls.Add(this.info);
             this.Controls.Add(this.exitBtn);
             this.Controls.Add(this.connectBtn);
             this.Controls.Add(this.tabs);
@@ -210,12 +232,14 @@
             this.MinimizeBox = false;
             this.Name = "MainMenu";
             this.Text = "Главное меню";
+            this.VisibleChanged += new System.EventHandler(this.visibleChange);
             this.tabs.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -236,5 +260,7 @@
         private System.Windows.Forms.ComboBox speed;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox portName;
+        public System.Windows.Forms.TextBox info_text;
+        public System.Windows.Forms.Label info;
     }
 }

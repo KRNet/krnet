@@ -92,6 +92,7 @@
             this.messages.Size = new System.Drawing.Size(581, 180);
             this.messages.TabIndex = 8;
             this.messages.Text = "";
+            this.messages.TextChanged += new System.EventHandler(this.scrollText);
             // 
             // Dialog
             // 

@@ -146,8 +146,7 @@ namespace KR_network
             //{
                 Console.WriteLine();
                 Console.Write(DateTime.Now.ToString());
-                Console.WriteLine("ФИЗИЧЕСКИЙ ШЛЕТ");
-                
+                Console.WriteLine("ФИЗИЧЕСКИЙ ШЛЕТ"); 
                 port.Write(frame, 0, frame.Length);
                 return frame.Length;
             //}

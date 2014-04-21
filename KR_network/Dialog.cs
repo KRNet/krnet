@@ -40,18 +40,11 @@ namespace KR_network
 
         private void sendBtn_Click(object sender, EventArgs e)
         {
-            if (Data.physicalLayer.receiverReady())
+            if (richTextBox1.Text != "")
             {
-                if (richTextBox1.Text != "")
-                {
-                    Data.appLayer.SendInfoMessage(richTextBox1.Text);
-                    writeMessage(Data.appLayer.getNickname(), richTextBox1.Text);
-                    richTextBox1.Text = "";
-                }
-            }
-            else
-            {
-                info_text.Text = "Соединение не установлено";
+                Data.appLayer.SendInfoMessage(richTextBox1.Text);
+                writeMessage(Data.appLayer.getNickname(), richTextBox1.Text);
+                richTextBox1.Text = "";
             }
         }
 
@@ -83,6 +76,12 @@ namespace KR_network
         private void formClosing(object sender, FormClosingEventArgs e)
         {
             exit();
+        }
+
+        private void scrollText(object sender, EventArgs e)
+        {
+            messages.SelectionStart = messages.Text.Length;
+            messages.ScrollToCaret();
         }
     }
 }
